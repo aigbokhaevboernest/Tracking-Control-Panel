@@ -78,8 +78,8 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } =
     useForm<FormValues>({
-      resolver: zodResolver(schema),
-      defaultValues: { tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false },
+      resolver: zodResolver(schema) as any,
+      defaultValues: { tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false } as any,
     });
 
   const paymentMode = watch("payment_mode");

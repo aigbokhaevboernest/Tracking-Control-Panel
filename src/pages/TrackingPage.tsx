@@ -115,7 +115,7 @@ export default function TrackingPage() {
                 </Marker>
               ))}
               {points.length > 1 && (
-                <Polyline positions={points.map((p) => [p[0], p[1]])} color="#2563eb" />
+                <Polyline positions={points.map((p) => [p[0], p[1]] as [number, number])} color="#2563eb" />
               )}
             </MapContainer>
           </div>
