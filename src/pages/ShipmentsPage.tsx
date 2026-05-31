@@ -43,8 +43,9 @@ export default function ShipmentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold">Shipments</h2>
+        <h2 className="text-xl font-bold sm:text-2xl">Shipments</h2>
         <Button
+          className="w-full sm:w-auto"
           onClick={() => {
             setEditId(null);
             setModalOpen(true);
@@ -66,7 +67,7 @@ export default function ShipmentsPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[220px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               {SHIPMENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
