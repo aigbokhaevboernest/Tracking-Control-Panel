@@ -191,7 +191,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-screen max-w-full overflow-y-auto rounded-none p-4 sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-lg sm:p-6">
           <DialogHeader>
             <DialogTitle>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</DialogTitle>
           </DialogHeader>
