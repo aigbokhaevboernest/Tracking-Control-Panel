@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Package, Truck, PauseCircle, CheckCircle2 } from "lucide-react";
+import { Package, Truck, PauseCircle, CheckCircle2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { statusBadgeClass } from "@/lib/tracking";
+import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { format } from "date-fns";
 
 export default function DashboardPage() {
-  const { data: counts } = useQuery({
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const { data: counts, refetch: refetchCounts } = useQuery({
     queryKey: ["dashboard-counts"],
     queryFn: async () => {
       const statuses = ["", "In-Transit", "On Hold", "Delivered"];
@@ -28,12 +33,12 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: recent } = useQuery({
+  const { data: recent, refetch: refetchRecent } = useQuery({
     queryKey: ["dashboard-recent"],
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,status,current_location,amount_due,created_at")
+        .select("id,tracking_number,receiver_name,description,status,current_location,date_sent,expected_delivery_date,amount_due")
         .order("created_at", { ascending: false })
         .limit(8);
       return data ?? [];
@@ -77,7 +82,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Dashboard</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold">Dashboard</h2>
+        <Button className="w-full sm:w-auto" onClick={() => setModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Register New Shipment
+        </Button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {kpis.map((k) => (
           <Card key={k.label} className="p-5">
@@ -104,14 +115,16 @@ export default function DashboardPage() {
               <tr>
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
+                <th className="px-4 py-6 text-left">Parcel</th>
                 <th className="px-4 py-6 text-left">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
+                <th className="px-4 py-6 text-left">Date Sent</th>
+                <th className="px-4 py-6 text-left">Delivery Date</th>
                 <th className="px-4 py-6 text-left">Amount</th>
-                <th className="px-4 py-6 text-left">Created</th>
               </tr>
             </thead>
             <tbody>
-              {(recent ?? []).map((s) => (
+              {(recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">
                     <Link to={`/track/${s.tracking_number}`} className="text-primary underline">
@@ -119,19 +132,21 @@ export default function DashboardPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
                   <td className="px-4 py-6">
                     <Badge variant="outline" className={statusBadgeClass(s.status)}>
                       {s.status ?? "—"}
                     </Badge>
                   </td>
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
+                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
-                  <td className="px-4 py-6">{s.created_at ? format(new Date(s.created_at), "PP") : "—"}</td>
                 </tr>
               ))}
               {!recent?.length && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                     No shipments yet.
                   </td>
                 </tr>
@@ -164,6 +179,13 @@ export default function DashboardPage() {
           {!activity?.length && <li className="text-sm text-muted-foreground">No activity yet.</li>}
         </ul>
       </Card>
+
+      <ShipmentFormModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        shipmentId={null}
+        onSaved={() => { refetchCounts(); refetchRecent(); }}
+      />
     </div>
   );
 }
