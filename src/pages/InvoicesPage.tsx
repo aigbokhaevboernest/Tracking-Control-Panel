@@ -25,15 +25,21 @@ export default function InvoicesPage() {
   }, []);
 
   useEffect(() => {
-    if (printing && barcodeRef.current) {
-      try {
-        JsBarcode(barcodeRef.current, printing.tracking_number, { height: 50, displayValue: true, fontSize: 14 });
-      } catch {}
+    if (!printing) return;
+    // Wait for DOM render
+    const timer = setTimeout(() => {
+      if (barcodeRef.current) {
+        try {
+          JsBarcode(barcodeRef.current, printing.tracking_number, { height: 60, displayValue: true, fontSize: 14 });
+        } catch {}
+      }
+      // Wait again for barcode to paint
       setTimeout(() => {
         window.print();
         setPrinting(null);
-      }, 200);
-    }
+      }, 250);
+    }, 100);
+    return () => clearTimeout(timer);
   }, [printing]);
 
   return (
@@ -74,7 +80,7 @@ export default function InvoicesPage() {
       </div>
 
       {printing && (
-        <div className="invoice-print fixed inset-0 z-50 hidden overflow-auto bg-white p-8 print:block">
+        <div id="invoice-print-content" className="fixed inset-0 z-50 hidden overflow-auto bg-white p-8 print:block">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-start justify-between border-b-2 border-black pb-4">
               <div>
@@ -87,6 +93,7 @@ export default function InvoicesPage() {
               </div>
               <div className="text-right">
                 <h2 className="text-xl font-bold">INVOICE</h2>
+                <div className="my-2 text-2xl font-bold tracking-wide">{printing.tracking_number}</div>
                 <svg ref={barcodeRef} />
               </div>
             </div>
@@ -95,18 +102,18 @@ export default function InvoicesPage() {
               <div>
                 <h3 className="mb-2 font-bold uppercase">Sender</h3>
                 <div className="text-sm">{printing.sender_name}</div>
-                <div className="text-sm">{printing.sender_address}</div>
-                <div className="text-sm">{printing.sender_country}</div>
                 <div className="text-sm">{printing.sender_phone}</div>
                 <div className="text-sm">{printing.sender_email}</div>
+                <div className="text-sm">{printing.sender_address}</div>
+                <div className="text-sm">{printing.sender_country}</div>
               </div>
               <div>
                 <h3 className="mb-2 font-bold uppercase">Receiver</h3>
                 <div className="text-sm">{printing.receiver_name}</div>
-                <div className="text-sm">{printing.receiver_address}</div>
-                <div className="text-sm">{printing.receiver_country}</div>
                 <div className="text-sm">{printing.receiver_phone}</div>
                 <div className="text-sm">{printing.receiver_email}</div>
+                <div className="text-sm">{printing.receiver_address}</div>
+                <div className="text-sm">{printing.receiver_country}</div>
               </div>
             </div>
 
@@ -125,6 +132,10 @@ export default function InvoicesPage() {
                   <tr><td className="py-1 font-medium">Comments</td><td>{printing.comments}</td></tr>
                 </tbody>
               </table>
+            </div>
+
+            <div className="mt-10 border-t pt-4 text-center text-sm italic text-gray-600">
+              We apologize for any inconvenience caused
             </div>
           </div>
         </div>

@@ -31,7 +31,6 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  // Close mobile drawer on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -43,7 +42,6 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Mobile backdrop */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -52,14 +50,11 @@ export default function AdminLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed left-0 top-0 z-50 flex h-screen flex-col border-r bg-white shadow-sm transition-transform duration-300 ease-in-out print:hidden",
-          // Mobile: full slide-in overlay
           "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
-          // Desktop: always visible, width by collapsed state
           "lg:translate-x-0",
           desktopCollapsed ? "lg:w-16" : "lg:w-64",
         )}
@@ -94,19 +89,19 @@ export default function AdminLayout() {
               </Link>
             );
           })}
+
+          <div className="pt-4">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-lg bg-red-600 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            >
+              <LogOut className="h-5 w-5 shrink-0" />
+              <span className={cn(desktopCollapsed && "lg:hidden")}>Logout</span>
+            </button>
+          </div>
         </nav>
-        <div className="border-t p-2">
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg bg-red-600 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            <span className={cn(desktopCollapsed && "lg:hidden")}>Logout</span>
-          </button>
-        </div>
       </aside>
 
-      {/* Main */}
       <div
         className={cn(
           "flex min-h-screen flex-col transition-all duration-300",

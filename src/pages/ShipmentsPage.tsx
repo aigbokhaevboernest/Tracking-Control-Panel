@@ -25,7 +25,10 @@ export default function ShipmentsPage() {
     queryFn: async () => {
       let q = supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,status,destination_label,amount_due,updated_at", { count: "exact" })
+        .select(
+          "id,tracking_number,receiver_name,description,status,current_location,date_sent,expected_delivery_date,amount_due",
+          { count: "exact" },
+        )
         .order("updated_at", { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
       if (statusFilter !== "all") q = q.eq("status", statusFilter);
@@ -83,27 +86,31 @@ export default function ShipmentsPage() {
               <tr>
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
+                <th className="px-4 py-6 text-left">Parcel</th>
                 <th className="px-4 py-6 text-left">Status</th>
-                <th className="px-4 py-6 text-left">Destination</th>
+                <th className="px-4 py-6 text-left">Current Location</th>
+                <th className="px-4 py-6 text-left">Date Sent</th>
+                <th className="px-4 py-6 text-left">Delivery Date</th>
                 <th className="px-4 py-6 text-left">Amount</th>
-                <th className="px-4 py-6 text-left">Updated</th>
                 <th className="px-4 py-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
               )}
-              {!isLoading && data?.rows.map((s) => (
+              {!isLoading && data?.rows.map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
                   <td className="px-4 py-6">
                     <Badge variant="outline" className={statusBadgeClass(s.status)}>{s.status ?? "—"}</Badge>
                   </td>
-                  <td className="px-4 py-6">{s.destination_label ?? "—"}</td>
+                  <td className="px-4 py-6">{s.current_location ?? "—"}</td>
+                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
-                  <td className="px-4 py-6">{s.updated_at ? format(new Date(s.updated_at), "PP") : "—"}</td>
                   <td className="px-4 py-6">
                     <Button
                       size="sm"
@@ -116,7 +123,7 @@ export default function ShipmentsPage() {
                 </tr>
               ))}
               {!isLoading && !data?.rows.length && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No shipments found.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments found.</td></tr>
               )}
             </tbody>
           </table>

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin, Edit, Truck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
+import { format } from "date-fns";
 
 export default function UpdateShipmentPage() {
   const [updateRow, setUpdateRow] = useState<any>(null);
@@ -32,7 +32,7 @@ export default function UpdateShipmentPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,status,current_location,history,amount_due")
+        .select("id,tracking_number,receiver_name,description,status,current_location,history,amount_due,date_sent,expected_delivery_date")
         .order("updated_at", { ascending: false });
       return data ?? [];
     },
@@ -90,36 +90,46 @@ export default function UpdateShipmentPage() {
               <tr>
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
+                <th className="px-4 py-6 text-left">Parcel</th>
                 <th className="px-4 py-6 text-left">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
+                <th className="px-4 py-6 text-left">Date Sent</th>
+                <th className="px-4 py-6 text-left">Delivery Date</th>
+                <th className="px-4 py-6 text-left">Amount</th>
                 <th className="px-4 py-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((s) => (
+              {(data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
                   <td className="px-4 py-6">
                     <Badge variant="outline" className={statusBadgeClass(s.status)}>{s.status ?? "—"}</Badge>
                   </td>
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="flex flex-wrap gap-2 px-4 py-6">
-                    <Button size="sm" className="w-40 bg-green-600 hover:bg-green-700" onClick={() => openUpdate(s)}>
-                      Update Location
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="w-32 bg-blue-600 hover:bg-blue-700"
-                      onClick={() => { setEditId(s.id); setEditOpen(true); }}
-                    >
-                      Edit Info
-                    </Button>
+                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
+                  <td className="px-4 py-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" className="w-32 bg-green-600 px-1 text-xs hover:bg-green-700" onClick={() => openUpdate(s)}>
+                        <Truck className="mr-1 h-3 w-3" /> Update Loc.
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="w-32 bg-blue-600 hover:bg-blue-700"
+                        onClick={() => { setEditId(s.id); setEditOpen(true); }}
+                      >
+                        <Edit className="mr-1 h-3 w-3" /> Edit Info
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {!data?.length && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">No shipments.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments.</td></tr>
               )}
             </tbody>
           </table>
@@ -127,19 +137,25 @@ export default function UpdateShipmentPage() {
       </Card>
 
       <Dialog open={!!updateRow} onOpenChange={(v) => !v && setUpdateRow(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Location · {updateRow?.tracking_number}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-3">
+        <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
+          <div className="flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white">
+            <DialogHeader className="space-y-0">
+              <DialogTitle className="flex items-center gap-2 text-white">
+                <MapPin className="h-5 w-5" /> Update Location · {updateRow?.tracking_number}
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <form onSubmit={handleSave} className="space-y-3 p-5">
             <div>
               <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                <SelectContent>
-                  {SHIPMENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">Select status</option>
+                {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
             <div>
               <Label>Current Location</Label>
