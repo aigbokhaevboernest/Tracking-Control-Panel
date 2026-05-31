@@ -236,7 +236,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="mx-4 mt-8 max-h-[calc(100dvh-4rem)] w-[calc(100vw-2rem)] max-w-2xl translate-y-0 top-8 left-1/2 -translate-x-1/2 overflow-hidden rounded-t-2xl rounded-b-2xl p-0 sm:mx-4 [&>button]:hidden"
+        className="!top-8 !translate-y-0 w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-4rem)] gap-0 overflow-hidden rounded-2xl border-0 p-0 shadow-2xl [&>button]:hidden"
       >
         {/* Purple gradient header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white rounded-t-2xl">
