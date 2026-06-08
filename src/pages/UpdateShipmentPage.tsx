@@ -22,6 +22,7 @@ export default function UpdateShipmentPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [status, setStatus] = useState("");
   const [location, setLocation] = useState("");
