@@ -10,10 +10,12 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -21,6 +23,7 @@ const nav = [
   { to: "/admin/update", label: "Update Shipment", icon: Edit3 },
   { to: "/admin/delete", label: "Delete Shipment", icon: Trash2 },
   { to: "/admin/invoices", label: "Invoices", icon: FileText },
+  { to: "/admin/custom-message", label: "Custom Message", icon: Mail },
   { to: "/admin/hold-settings", label: "Hold Settings", icon: Settings },
 ];
 
@@ -30,6 +33,7 @@ export default function AdminLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  useInactivityLogout();
 
   useEffect(() => {
     setMobileOpen(false);

@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SHIPMENT_STATUSES, generateTrackingNumber } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
+import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
+import { sendMail, buildCreatedEmail, buildStatusEmail } from "@/lib/sendMail";
 
 const numOrNull = z.preprocess(
   (v) => (v === "" || v == null ? null : Number(v)),
@@ -143,6 +145,8 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
@@ -192,7 +196,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     }
   }
 
-  async function onSubmit(values: FormValues) {
+  function onSubmit(values: FormValues) {
+    setPendingValues(values);
+    setConfirmOpen(true);
+  }
+
+  async function doSave(values: FormValues, sendEmailFlag: boolean) {
     setSubmitting(true);
     try {
       const [origin, currentStop, destination] = await Promise.all([
@@ -224,6 +233,35 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         if (error) throw error;
         toast.success("Shipment created");
       }
+
+      if (sendEmailFlag && values.receiver_email) {
+        const ctx = {
+          tracking_number: values.tracking_number,
+          sender_name: values.sender_name,
+          sender_country: values.sender_country,
+          receiver_name: values.receiver_name,
+          receiver_country: values.receiver_country,
+          package_type: values.package_type,
+          weight: values.weight,
+          origin_label: values.origin_label,
+          destination_label: values.destination_label,
+          current_location: values.current_location,
+          expected_delivery_date: values.expected_delivery_date,
+          hold_amount: values.hold_amount,
+        };
+        const tpl = shipmentId
+          ? buildStatusEmail(values.status ?? null, ctx) ?? buildCreatedEmail(ctx)
+          : buildCreatedEmail(ctx);
+        const result = await sendMail({
+          email: values.receiver_email,
+          subject: tpl.subject,
+          first_name: values.receiver_name?.split(" ")[0] ?? "",
+          message: tpl.message,
+        });
+        if (result.success) toast.success("Email sent to consignee");
+        else toast.error("Email failed", { description: result.error });
+      }
+
       onSaved?.();
       onOpenChange(false);
     } catch (err: any) {
@@ -420,6 +458,13 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           </form>
         </div>
       </DialogContent>
+      <ConfirmNotifyModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={async (send) => {
+          if (pendingValues) await doSave(pendingValues, send);
+        }}
+      />
     </Dialog>
   );
 }
