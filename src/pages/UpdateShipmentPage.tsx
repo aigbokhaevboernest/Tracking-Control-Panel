@@ -50,8 +50,13 @@ export default function UpdateShipmentPage() {
     setDate(new Date().toISOString().slice(0, 10));
   }
 
-  async function handleSave(e: FormEvent) {
+  function handleSave(e: FormEvent) {
     e.preventDefault();
+    if (!updateRow) return;
+    setConfirmOpen(true);
+  }
+
+  async function doSave(sendEmailFlag: boolean) {
     if (!updateRow) return;
     setSubmitting(true);
     try {
@@ -74,6 +79,30 @@ export default function UpdateShipmentPage() {
       const { error } = await supabase.from("shipments").update(patch).eq("id", updateRow.id);
       if (error) throw error;
       toast.success("Shipment updated");
+
+      if (sendEmailFlag && updateRow.receiver_email) {
+        const tpl = buildStatusEmail(status, {
+          tracking_number: updateRow.tracking_number,
+          receiver_name: updateRow.receiver_name,
+          current_location: location,
+          destination_label: updateRow.destination_label,
+          expected_delivery_date: updateRow.expected_delivery_date,
+          hold_amount: amount || updateRow.hold_amount,
+        });
+        if (tpl) {
+          const res = await sendMail({
+            email: updateRow.receiver_email,
+            subject: tpl.subject,
+            first_name: updateRow.receiver_name?.split(" ")[0] ?? "",
+            message: tpl.message,
+          });
+          if (res.success) toast.success("Email sent to consignee");
+          else toast.error("Email failed", { description: res.error });
+        } else {
+          toast.info("No email template for this status");
+        }
+      }
+
       setUpdateRow(null);
       refetch();
     } catch (err: any) {
