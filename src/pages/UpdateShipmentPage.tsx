@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
+import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
+import { sendMail, buildStatusEmail } from "@/lib/sendMail";
 import { format } from "date-fns";
 
 export default function UpdateShipmentPage() {
