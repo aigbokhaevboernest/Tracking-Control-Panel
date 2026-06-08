@@ -215,6 +215,13 @@ export default function UpdateShipmentPage() {
       </Dialog>
 
       <ShipmentFormModal open={editOpen} onOpenChange={setEditOpen} shipmentId={editId} onSaved={() => refetch()} />
+
+      <ConfirmNotifyModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={async (send) => { await doSave(send); }}
+      />
+
     </div>
   );
 }
