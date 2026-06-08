@@ -11,6 +11,7 @@ import UpdateShipmentPage from "@/pages/UpdateShipmentPage";
 import DeleteShipmentPage from "@/pages/DeleteShipmentPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import HoldSettingsPage from "@/pages/HoldSettingsPage";
+import CustomMessagePage from "@/pages/CustomMessagePage";
 import TrackingPage from "@/pages/TrackingPage";
 import NotFound from "@/pages/NotFound";
 
