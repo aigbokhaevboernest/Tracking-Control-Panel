@@ -458,6 +458,13 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           </form>
         </div>
       </DialogContent>
+      <ConfirmNotifyModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={async (send) => {
+          if (pendingValues) await doSave(pendingValues, send);
+        }}
+      />
     </Dialog>
   );
 }
