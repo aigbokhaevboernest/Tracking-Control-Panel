@@ -33,6 +33,7 @@ export default function AdminLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  useInactivityLogout();
 
   useEffect(() => {
     setMobileOpen(false);
