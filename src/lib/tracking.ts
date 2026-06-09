@@ -19,21 +19,24 @@ export type ShipmentStatus = (typeof SHIPMENT_STATUSES)[number];
 
 export function statusBadgeClass(status?: string | null) {
   switch (status) {
-    case "Delivered":
-      return "bg-green-100 text-green-800 border-green-200";
+    case "Origin Warehouse":
+      return "bg-blue-700 text-white border-blue-700 whitespace-nowrap";
     case "In-Transit":
-      return "bg-blue-100 text-blue-800 border-blue-200";
+      return "bg-red-700 text-white border-red-700 whitespace-nowrap";
     case "On Hold":
-      return "bg-amber-100 text-amber-800 border-amber-200";
-    case "Failed":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "Returned To Warehouse":
-      return "bg-orange-100 text-orange-800 border-orange-200";
-    case "Pick-Up":
-      return "bg-purple-100 text-purple-800 border-purple-200";
+      return "bg-orange-500 text-white border-orange-500 whitespace-nowrap";
     case "Arrived At Nearest Airport":
-      return "bg-cyan-100 text-cyan-800 border-cyan-200";
+      return "bg-cyan-500 text-white border-cyan-500 whitespace-nowrap text-[10px]";
+    case "Pick-Up":
+      return "bg-blue-600 text-white border-blue-600 whitespace-nowrap";
+    case "Delivered":
+      return "bg-green-600 text-white border-green-600 whitespace-nowrap";
+    case "Failed":
+      return "bg-red-600 text-white border-red-600 whitespace-nowrap";
+    case "Returned To Warehouse":
+      return "bg-gray-600 text-white border-gray-600 whitespace-nowrap text-[10px]";
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
+      return "bg-gray-500 text-white border-gray-500 whitespace-nowrap";
   }
 }
+
