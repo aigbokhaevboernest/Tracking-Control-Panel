@@ -48,11 +48,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 px-4">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-xl">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <img
-            src="https://nzideivdechbxhepmlvz.supabase.co/storage/v1/object/public/shipment-assets/Tranzexroute.PNG"
-            alt="Tranzex Route"
-            className="h-16 w-16 object-contain"
-          />
           <h1 className="text-2xl font-bold">Admin Sign In</h1>
           <p className="text-sm text-muted-foreground">Shipment Tracking Dashboard</p>
         </div>
