@@ -44,31 +44,31 @@ export default function DeleteShipmentPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-6 text-left">Tracking #</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
-                <th className="px-4 py-6 text-left">Date Sent</th>
-                <th className="px-4 py-6 text-left">Delivery Date</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Delivery Date</th>
                 <th className="px-4 py-6 text-left">Amount</th>
-                <th className="px-4 py-6 text-left">Actions</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && <TableRowSkeleton columns={9} rows={5} />}
               {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
-                  <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
-                  <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
-                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6 min-w-[130px]">
+                  <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
+                  <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
+                  <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
-                  <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                   <td className="px-4 py-6">
                     <Button
                       size="sm"
