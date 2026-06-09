@@ -69,6 +69,8 @@ export default function UpdateShipmentPage() {
         current_location: location || null,
         amount_due: amount === "" ? null : Number(amount),
         history: newHist,
+        // Date field in modal updates ONLY estimated delivery date — never date_sent
+        expected_delivery_date: date || null,
       };
       if (geo) {
         patch.current_stop_label = location;
