@@ -50,9 +50,9 @@ export default function HoldSettingsPage() {
       <h2 className="text-2xl font-bold">Hold Settings</h2>
       <form onSubmit={handleSave} className="space-y-4">
 
-        {/* Header */}
+        {/* support mail */}
         <Card className="p-5 space-y-3">
-          <h3 className="font-semibold">Header</h3>
+          <h3 className="font-semibold">Support Mail</h3>
           <div>
             <Label>Contact Support Email</Label>
             <Input
