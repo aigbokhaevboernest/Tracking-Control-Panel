@@ -22,11 +22,7 @@ const numOrNull = z.preprocess(
   (v) => (v === "" || v == null ? null : Number(v)),
   z.number().nullable().optional()
 );
-const optStr = z
-  .string()
-  .nullable()
-  .optional()
-  .or(z.literal("").transform(() => null));
+const optStr = z.string().nullable().optional().or(z.literal("").transform(() => null));
 
 const schema = z.object({
   tracking_number: z.string().min(3, "Required"),
@@ -63,6 +59,9 @@ const COLORS = {
 };
 type CK = keyof typeof COLORS;
 
+/* ── Shared input style — font-size 16px prevents iOS zoom ── */
+const inputBase: React.CSSProperties = { fontSize: 16, WebkitTextSizeAdjust: "100%" };
+
 function Section({ title, color, children }: { title: string; color: CK; children: ReactNode }) {
   const c = COLORS[color];
   return (
@@ -77,17 +76,19 @@ function Section({ title, color, children }: { title: string; color: CK; childre
   );
 }
 
-function FInput({ icon: Icon, color, rightEl, type = "text", ...props }:
+function FInput({ icon: Icon, color, rightEl, type = "text", className, style, ...props }:
   { icon: any; color: CK; rightEl?: ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="relative">
       <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       <input
         type={type}
+        style={{ ...inputBase, ...style }}
         className={cn(
-          "w-full h-10 rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:bg-white transition",
+          "w-full h-11 rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 outline-none focus:ring-2 focus:bg-white transition",
           rightEl && "pr-10",
-          COLORS[color].ring
+          COLORS[color].ring,
+          className
         )}
         {...props}
       />
@@ -96,15 +97,16 @@ function FInput({ icon: Icon, color, rightEl, type = "text", ...props }:
   );
 }
 
-function FTextarea({ icon: Icon, color, ...props }:
+function FTextarea({ icon: Icon, color, style, ...props }:
   { icon: any; color: CK } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <div className="relative">
       <Icon className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-gray-400" />
       <textarea
         rows={2}
+        style={{ ...inputBase, ...style }}
         className={cn(
-          "w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:bg-white transition",
+          "w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 py-2 outline-none focus:ring-2 focus:bg-white transition",
           COLORS[color].ring
         )}
         {...props}
@@ -113,14 +115,15 @@ function FTextarea({ icon: Icon, color, ...props }:
   );
 }
 
-function FSelect({ icon: Icon, color, children, ...props }:
+function FSelect({ icon: Icon, color, children, style, ...props }:
   { icon: any; color: CK; children: ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <div className="relative">
       <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       <select
+        style={{ ...inputBase, ...style }}
         className={cn(
-          "w-full h-10 appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-8 text-sm outline-none focus:ring-2 focus:bg-white transition",
+          "w-full h-11 appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-8 outline-none focus:ring-2 focus:bg-white transition",
           COLORS[color].ring
         )}
         {...props}
@@ -152,7 +155,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const paymentMode = watch("payment_mode");
   const trackingNumber = watch("tracking_number");
 
-  // Lock body scroll when modal open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -261,15 +263,13 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
   return createPortal(
     <>
-      {/* ── BACKDROP ── */}
+      {/* BACKDROP */}
       <div
         style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)" }}
         onClick={() => onOpenChange(false)}
       />
 
-      {/* ── MODAL SHELL ──
-          Uses inline styles (not Tailwind) so nothing from the design system
-          can override positioning or sizing. Pinned 24px from each edge. */}
+      {/* MODAL — all inline styles, nothing can override */}
       <div
         style={{
           position: "fixed",
@@ -287,17 +287,15 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
         }}
       >
-        {/* ── HEADER — fixed height, never scrolls ── */}
-        <div
-          style={{
-            flexShrink: 0,
-            background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
-            padding: "16px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        {/* HEADER */}
+        <div style={{
+          flexShrink: 0,
+          background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
+          padding: "16px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff", fontWeight: 600, fontSize: 15 }}>
             <PackageIcon size={18} />
             <span>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</span>
@@ -311,18 +309,17 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           </button>
         </div>
 
-        {/* ── BODY — takes ALL remaining height, scrolls internally ── */}
-        <div
-          style={{
-            flex: 1,
-            minHeight: 0,        /* critical — lets flex child shrink below content size */
-            overflowY: "auto",
-            overflowX: "hidden",
-            overscrollBehavior: "contain",
-            background: "#fff",
-            padding: "20px 20px 24px",
-          }}
-        >
+        {/* SCROLLABLE BODY */}
+        <div style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+          background: "#fff",
+          padding: "20px 20px 32px",
+        }}>
           <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
             <Section title="Basic Info" color="blue">
@@ -446,19 +443,18 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
               </div>
             </Section>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={submitting}
               style={{
                 width: "100%",
-                padding: "13px 0",
+                padding: "14px 0",
                 background: submitting ? "#7c3aed99" : "#7c3aed",
                 color: "#fff",
                 border: "none",
                 borderRadius: 10,
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 16,
                 cursor: submitting ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
