@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Package, Truck, PauseCircle, CheckCircle2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { statusBadgeClass } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
 
 function safeFormat(value: any, pattern: string): string {
