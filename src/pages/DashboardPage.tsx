@@ -134,9 +134,7 @@ export default function DashboardPage() {
               {(recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">
-                    <Link to={`/track/${s.tracking_number}`} className="text-primary underline">
-                      {s.tracking_number}
-                    </Link>
+                    {s.tracking_number}
                   </td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
@@ -145,6 +143,7 @@ export default function DashboardPage() {
                       {s.status ?? "—"}
                     </Badge>
                   </td>
+
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
                   <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
