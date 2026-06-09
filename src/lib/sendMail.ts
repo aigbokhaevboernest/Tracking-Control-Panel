@@ -53,6 +53,12 @@ export async function sendMail(args: SendMailArgs): Promise<SendMailResult> {
 // ---------- Helpers ----------
 
 function v(x: any) { return x == null || x === "" ? "—" : String(x); }
+function fmtDate(x: any) {
+  if (x == null || x === "") return "—";
+  const d = new Date(x);
+  if (isNaN(d.getTime())) return String(x);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
 function trackUrl(t: string) { return `https://tranzexroute.com/track/${encodeURIComponent(t)}`; }
 
 function row(label: string, value: string) {
