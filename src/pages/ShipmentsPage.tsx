@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
 
 const PAGE_SIZE = 15;
