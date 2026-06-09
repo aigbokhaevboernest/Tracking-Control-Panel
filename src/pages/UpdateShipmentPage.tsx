@@ -87,7 +87,7 @@ export default function UpdateShipmentPage() {
           receiver_name: updateRow.receiver_name,
           current_location: location,
           destination_label: updateRow.destination_label,
-          expected_delivery_date: updateRow.expected_delivery_date,
+          expected_delivery_date: date || updateRow.expected_delivery_date,
           hold_amount: amount || updateRow.hold_amount,
         });
         if (tpl) {
