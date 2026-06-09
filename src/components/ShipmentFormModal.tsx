@@ -49,13 +49,13 @@ interface Props {
 }
 
 const SECTION_COLORS = {
-  blue: { bar: "bg-blue-500", text: "text-blue-600", ring: "focus:ring-blue-500 focus:border-blue-500" },
-  orange: { bar: "bg-orange-500", text: "text-orange-600", ring: "focus:ring-orange-500 focus:border-orange-500" },
-  red: { bar: "bg-red-500", text: "text-red-600", ring: "focus:ring-red-500 focus:border-red-500" },
-  violet: { bar: "bg-violet-600", text: "text-violet-600", ring: "focus:ring-violet-500 focus:border-violet-500" },
-  teal: { bar: "bg-teal-600", text: "text-teal-600", ring: "focus:ring-teal-500 focus:border-teal-500" },
-  green: { bar: "bg-green-500", text: "text-green-600", ring: "focus:ring-green-500 focus:border-green-500" },
-  amber: { bar: "bg-amber-500", text: "text-amber-600", ring: "focus:ring-amber-500 focus:border-amber-500" },
+  blue:    { bar: "bg-blue-500",    text: "text-blue-600",    ring: "focus:ring-blue-500 focus:border-blue-500" },
+  orange:  { bar: "bg-orange-500",  text: "text-orange-600",  ring: "focus:ring-orange-500 focus:border-orange-500" },
+  red:     { bar: "bg-red-500",     text: "text-red-600",     ring: "focus:ring-red-500 focus:border-red-500" },
+  violet:  { bar: "bg-violet-600",  text: "text-violet-600",  ring: "focus:ring-violet-500 focus:border-violet-500" },
+  teal:    { bar: "bg-teal-600",    text: "text-teal-600",    ring: "focus:ring-teal-500 focus:border-teal-500" },
+  green:   { bar: "bg-green-500",   text: "text-green-600",   ring: "focus:ring-green-500 focus:border-green-500" },
+  amber:   { bar: "bg-amber-500",   text: "text-amber-600",   ring: "focus:ring-amber-500 focus:border-amber-500" },
   emerald: { bar: "bg-emerald-500", text: "text-emerald-600", ring: "focus:ring-emerald-500 focus:border-emerald-500" },
 };
 
@@ -274,10 +274,10 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="!top-8 !translate-y-0 w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-4rem)] gap-0 overflow-hidden rounded-2xl border-0 p-0 shadow-2xl [&>button]:hidden"
+        className="flex flex-col w-[calc(100vw-2rem)] max-w-2xl max-h-[90dvh] gap-0 overflow-hidden rounded-2xl border-0 p-0 shadow-2xl [&>button]:hidden"
       >
-        {/* Purple gradient header */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white rounded-t-2xl">
+        {/* Purple gradient header — fixed, never scrolls */}
+        <div className="flex-shrink-0 flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white rounded-t-2xl">
           <DialogTitle className="flex items-center gap-2 text-white">
             <PackageIcon className="h-5 w-5" />
             <span>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</span>
@@ -292,8 +292,8 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           </button>
         </div>
 
-        {/* Body */}
-        <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto bg-white px-5 py-5">
+        {/* Scrollable body — fills remaining height exactly, no overflow */}
+        <div className="flex-1 min-h-0 overflow-y-auto bg-white px-5 py-5">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
             <Section title="Basic Info" color="blue">
@@ -387,8 +387,10 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 <FieldLabel>Destination (search)</FieldLabel>
                 <IconInput icon={Search} color="teal" {...register("destination_label")} />
               </div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Current Location (display)</FieldLabel><IconInput icon={MapPin} color="teal" {...register("current_location")} /></div>
-
+              <div className="space-y-1 md:col-span-2">
+                <FieldLabel>Current Location (display)</FieldLabel>
+                <IconInput icon={MapPin} color="teal" {...register("current_location")} />
+              </div>
               <div className="md:col-span-2">
                 <div className="flex items-center gap-2 pt-2 pb-1">
                   <MapPin className="h-3 w-3 text-teal-600" />
@@ -410,7 +412,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                   <option value="Bank">Bank</option>
                 </NativeSelect>
               </div>
-
               {paymentMode === "Crypto" && (
                 <>
                   <div className="space-y-1 md:col-span-2"><FieldLabel>Crypto Wallet Address</FieldLabel><IconInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
@@ -449,15 +450,17 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
               </div>
             </Section>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 pb-1">
               <Button type="submit" disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 sm:w-auto">
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <Truck className="mr-2 h-4 w-4" /> Save Shipment
               </Button>
             </div>
+
           </form>
         </div>
       </DialogContent>
+
       <ConfirmNotifyModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
