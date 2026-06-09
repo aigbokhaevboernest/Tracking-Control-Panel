@@ -137,7 +137,7 @@ function FL({ children }: { children: ReactNode }) {
   return <Label className="text-xs font-semibold text-gray-600">{children}</Label>;
 }
 
-const SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
+const SETTINGS_ID = 1;
 
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
