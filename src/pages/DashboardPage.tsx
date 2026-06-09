@@ -180,7 +180,7 @@ export default function DashboardPage() {
                 </div>
                 {a.comments && <div className="text-xs text-muted-foreground">{a.comments}</div>}
               </div>
-              <div className="text-xs text-muted-foreground">{a.date ? format(new Date(a.date), "PPp") : ""}</div>
+              <div className="text-xs text-muted-foreground">{a.date ? safeFormat(a.date, "PPp") : ""}</div>
             </li>
           ))}
           {!activity?.length && <li className="text-sm text-muted-foreground">No activity yet.</li>}
