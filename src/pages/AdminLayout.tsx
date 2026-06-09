@@ -128,7 +128,6 @@ export default function AdminLayout() {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-sm font-semibold sm:text-base">Shipment Admin</h1>
         </header>
         <main className="flex-1 p-3 sm:p-4 md:p-6">
           <Outlet />
