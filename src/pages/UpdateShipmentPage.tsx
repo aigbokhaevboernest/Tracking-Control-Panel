@@ -45,7 +45,8 @@ export default function UpdateShipmentPage() {
     setLocation(row.current_location ?? "");
     setAmount(row.amount_due != null ? String(row.amount_due) : "");
     setComments("");
-    setDate(new Date().toISOString().slice(0, 10));
+    // Date field now controls Estimated Delivery Date only — initialize from existing value
+    setDate(row.expected_delivery_date ? String(row.expected_delivery_date).slice(0, 10) : "");
   }
 
   function handleSave(e: FormEvent) {
