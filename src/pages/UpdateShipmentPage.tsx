@@ -7,7 +7,9 @@ import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
@@ -61,11 +63,11 @@ export default function UpdateShipmentPage() {
       const geo = location ? await geocode(location) : null;
       const newHist = [
         ...((updateRow.history as any[]) ?? []),
-        { status: status || updateRow.status, location, date, comments },
+        { status, location, date, comments },
       ];
       const patch: any = {
-        status: status || updateRow.status, // ← keep existing status if none selected
-        current_location: location || updateRow.current_location || null,
+        status: status || null,
+        current_location: location || null,
         amount_due: amount === "" ? null : Number(amount),
         history: newHist,
       };
@@ -79,10 +81,10 @@ export default function UpdateShipmentPage() {
       toast.success("Shipment updated");
 
       if (sendEmailFlag && updateRow.receiver_email) {
-        const tpl = buildStatusEmail(status || updateRow.status, {
+        const tpl = buildStatusEmail(status, {
           tracking_number: updateRow.tracking_number,
           receiver_name: updateRow.receiver_name,
-          current_location: location || updateRow.current_location,
+          current_location: location,
           destination_label: updateRow.destination_label,
           expected_delivery_date: updateRow.expected_delivery_date,
           hold_amount: amount || updateRow.hold_amount,
@@ -166,28 +168,33 @@ export default function UpdateShipmentPage() {
         </div>
       </Card>
 
+      {/* Update Location Modal — using createPortal to avoid z-index issues */}
       {!!updateRow && createPortal(
         <>
+          {/* Backdrop */}
           <div
             style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)" }}
             onClick={() => setUpdateRow(null)}
           />
+
+          {/* Modal */}
           <div style={{
             position: "fixed",
-            top: 24,
-            bottom: 24,
+            top: "50%",
             left: "50%",
-            transform: "translateX(-50%)",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
             width: "calc(100vw - 32px)",
             maxWidth: 520,
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: 16,
+            borderRadius: 14,
             overflow: "hidden",
             boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
             background: "#fff",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
           }}>
+            {/* Header */}
             <div style={{
               flexShrink: 0,
               background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
@@ -210,7 +217,8 @@ export default function UpdateShipmentPage() {
               </button>
             </div>
 
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch", padding: "20px 20px 32px" }}>
+            {/* Scrollable body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 24px" }}>
               <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
                   <Label>Status</Label>
@@ -219,7 +227,7 @@ export default function UpdateShipmentPage() {
                     onChange={(e) => setStatus(e.target.value)}
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px" }}
                   >
-                    <option value="">Keep current ({updateRow?.status ?? "none"})</option>
+                    <option value="">Select status</option>
                     {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
