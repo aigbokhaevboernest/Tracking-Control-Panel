@@ -12,7 +12,6 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SHIPMENT_STATUSES, generateTrackingNumber } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
@@ -271,17 +270,27 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     }
   }
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex flex-col w-[calc(100vw-2rem)] max-w-2xl max-h-[90dvh] gap-0 overflow-hidden rounded-2xl border-0 p-0 shadow-2xl [&>button]:hidden"
+    <>
+      {/* Full-screen overlay */}
+      <div
+        className="fixed inset-0 z-50 bg-black/50"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Modal — fixed, centered, no overflow outside */}
+      <div
+        className="fixed inset-x-4 top-6 bottom-6 z-50 flex flex-col rounded-2xl shadow-2xl overflow-hidden"
+        style={{ maxWidth: 672, margin: "0 auto" }}
       >
-        {/* Purple gradient header — fixed, never scrolls */}
+        {/* Purple header — never scrolls */}
         <div className="flex-shrink-0 flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white rounded-t-2xl">
-          <DialogTitle className="flex items-center gap-2 text-white">
+          <div className="flex items-center gap-2 font-semibold text-base">
             <PackageIcon className="h-5 w-5" />
             <span>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</span>
-          </DialogTitle>
+          </div>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
@@ -292,8 +301,8 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           </button>
         </div>
 
-        {/* Scrollable body — fills remaining height exactly, no overflow */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-white px-5 py-5">
+        {/* Scrollable body — flex-1 fills exact remaining height */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-white px-5 py-5">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
             <Section title="Basic Info" color="blue">
@@ -450,7 +459,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
               </div>
             </Section>
 
-            <div className="flex justify-end pt-2 pb-1">
+            <div className="flex justify-end pt-2 pb-2">
               <Button type="submit" disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 sm:w-auto">
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <Truck className="mr-2 h-4 w-4" /> Save Shipment
@@ -459,7 +468,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
           </form>
         </div>
-      </DialogContent>
+      </div>
 
       <ConfirmNotifyModal
         open={confirmOpen}
@@ -468,6 +477,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           if (pendingValues) await doSave(pendingValues, send);
         }}
       />
-    </Dialog>
+    </>
   );
 }
