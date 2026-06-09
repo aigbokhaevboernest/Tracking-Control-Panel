@@ -45,7 +45,6 @@ export default function UpdateShipmentPage() {
     setLocation(row.current_location ?? "");
     setAmount(row.amount_due != null ? String(row.amount_due) : "");
     setComments("");
-    // Date field now controls Estimated Delivery Date only — initialize from existing value
     setDate(row.expected_delivery_date ? String(row.expected_delivery_date).slice(0, 10) : "");
   }
 
@@ -69,7 +68,6 @@ export default function UpdateShipmentPage() {
         current_location: location || null,
         amount_due: amount === "" ? null : Number(amount),
         history: newHist,
-        // Date field in modal updates ONLY estimated delivery date — never date_sent
         expected_delivery_date: date || null,
       };
       if (geo) {
@@ -121,48 +119,47 @@ export default function UpdateShipmentPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-6 text-left">Tracking #</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
-                <th className="px-4 py-6 text-left">Date Sent</th>
-                <th className="px-4 py-6 text-left">Delivery Date</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Delivery Date</th>
                 <th className="px-4 py-6 text-left">Amount</th>
-                <th className="px-4 py-6 text-left">Actions</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading && <TableRowSkeleton columns={9} rows={5} />}
               {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
-                  <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
-                  <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
-                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6 min-w-[130px]">
+                  <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
+                  <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
+                  <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
-                  <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                   <td className="px-4 py-6">
                     <div className="flex flex-wrap gap-2">
                       <Button
-  size="sm"
-  className="w-[90px] min-h-[48px] bg-green-600 px-3 py-2 text-[13px] leading-tight hover:bg-green-700 whitespace-normal text-center"
-  onClick={() => openUpdate(s)}
->
-  <Truck className="mr-1 h-3 w-3 shrink-0" /> Update Location
-</Button>
-<Button
-  size="sm"
-  className="w-[90px] h-[36px] bg-blue-600 px-3 text-[13px] hover:bg-blue-700"
-  onClick={() => { setEditId(s.id); setEditOpen(true); }}
->
-  <Edit className="mr-1 h-3 w-3" /> Edit Info
-</Button>
-
+                        size="sm"
+                        className="w-[90px] min-h-[48px] bg-green-600 px-3 py-2 text-[13px] leading-tight hover:bg-green-700 whitespace-normal text-center"
+                        onClick={() => openUpdate(s)}
+                      >
+                        <Truck className="mr-1 h-3 w-3 shrink-0" /> Update Location
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="w-[90px] h-[36px] bg-blue-600 px-3 text-[13px] hover:bg-blue-700"
+                        onClick={() => { setEditId(s.id); setEditOpen(true); }}
+                      >
+                        <Edit className="mr-1 h-3 w-3" /> Edit Info
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -175,16 +172,12 @@ export default function UpdateShipmentPage() {
         </div>
       </Card>
 
-      {/* Update Location Modal — using createPortal to avoid z-index issues */}
       {!!updateRow && createPortal(
         <>
-          {/* Backdrop */}
           <div
             style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)" }}
             onClick={() => setUpdateRow(null)}
           />
-
-          {/* Modal */}
           <div style={{
             position: "fixed",
             top: "50%",
@@ -201,7 +194,6 @@ export default function UpdateShipmentPage() {
             display: "flex",
             flexDirection: "column",
           }}>
-            {/* Header */}
             <div style={{
               flexShrink: 0,
               background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
@@ -224,7 +216,6 @@ export default function UpdateShipmentPage() {
               </button>
             </div>
 
-            {/* Scrollable body */}
             <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 24px" }}>
               <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
