@@ -308,3 +308,97 @@ ${trackBtn(trackUrl(s.tracking_number), "#7C3AED")}
 ${CONFIDENTIALITY}`,
   };
 }
+
+// ---------- Invoice email ----------
+
+export interface InvoiceEmailCtx {
+  tracking_number: string;
+  sender_name?: string | null;
+  sender_country?: string | null;
+  receiver_name?: string | null;
+  receiver_email?: string | null;
+  receiver_country?: string | null;
+  package_type?: string | null;
+  weight?: string | null;
+  description?: string | null;
+  origin_label?: string | null;
+  destination_label?: string | null;
+  date_sent?: string | null;
+  expected_delivery_date?: string | null;
+  amount_due?: any;
+  status?: string | null;
+  comments?: string | null;
+  current_location?: string | null;
+  payment_mode?: string | null;
+}
+
+export function buildInvoiceEmail(s: InvoiceEmailCtx, company: { name: string; address?: string | null; email?: string | null; logo?: string | null }) {
+  const amount = s.amount_due != null && s.amount_due !== "" ? `$${s.amount_due}` : "—";
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const logoBlock = company.logo
+    ? `<img src="${company.logo}" alt="${company.name}" style="height:48px; display:block; margin-bottom:8px;"/>`
+    : `<div style="font-size:20px; font-weight:700; color:#111827;">${company.name}</div>`;
+
+  const msg = `
+<div style="font-family:'DM Sans','Inter',Arial,sans-serif; color:#111827;">
+  <table style="width:100%; border-collapse:collapse; background:#f3f4f6; padding:20px;">
+    <tr>
+      <td style="padding:20px;">${logoBlock}
+        <div style="font-size:13px; color:#6B7280;">${v(company.address)}</div>
+        <div style="font-size:13px; color:#6B7280;">${v(company.email)}</div>
+      </td>
+      <td style="padding:20px; text-align:right;">
+        <div style="font-size:22px; font-weight:700; letter-spacing:2px;">INVOICE</div>
+        <div style="font-size:12px; color:#6B7280;">Issued: ${today}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div style="padding:20px;">
+    <div style="font-size:11px; letter-spacing:1px; color:#6B7280;">TRACKING NUMBER</div>
+    <div style="font-size:20px; font-weight:700; color:#7C3AED; margin:4px 0 16px 0;">${v(s.tracking_number)}</div>
+
+    <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+      <tr>
+        <td style="vertical-align:top; width:50%; padding-right:12px;">
+          <div style="font-size:11px; letter-spacing:1px; color:#6B7280;">FROM (SENDER)</div>
+          <div style="font-weight:600; margin-top:4px;">${v(s.sender_name)}</div>
+          <div style="font-size:13px; color:#374151;">${v(s.sender_country)}</div>
+        </td>
+        <td style="vertical-align:top; width:50%; padding-left:12px;">
+          <div style="font-size:11px; letter-spacing:1px; color:#6B7280;">TO (RECEIVER)</div>
+          <div style="font-weight:600; margin-top:4px;">${v(s.receiver_name)}</div>
+          <div style="font-size:13px; color:#374151;">${v(s.receiver_email)}</div>
+          <div style="font-size:13px; color:#374151;">${v(s.receiver_country)}</div>
+        </td>
+      </tr>
+    </table>
+
+    <div style="font-size:11px; letter-spacing:1px; color:#6B7280; border-top:1px solid #E5E7EB; padding-top:12px;">SHIPMENT DETAILS</div>
+    ${table(
+      row("Package Type", v(s.package_type)) +
+      row("Weight", v(s.weight)) +
+      row("Description", v(s.description)) +
+      row("Origin", v(s.origin_label)) +
+      row("Destination", v(s.destination_label)) +
+      row("Date Sent", fmtDate(s.date_sent)) +
+      row("Estimated Delivery", fmtDate(s.expected_delivery_date)) +
+      row("Current Location", v(s.current_location)) +
+      row("Status", v(s.status)) +
+      row("Payment Mode", v(s.payment_mode)) +
+      row("Comments", v(s.comments))
+    )}
+
+    <div style="background:#F9FAFB; border-radius:8px; padding:16px; margin-top:8px;">
+      <div style="font-size:11px; letter-spacing:1px; color:#6B7280;">BILLING</div>
+      <div style="font-size:22px; font-weight:700; color:#111827; margin-top:4px;">Amount Due: ${amount}</div>
+    </div>
+
+    <div style="text-align:center; font-size:12px; color:#9CA3AF; margin-top:24px; font-style:italic;">
+      This is a computer-generated invoice and does not require a signature.
+    </div>
+  </div>
+  ${CONFIDENTIALITY}
+</div>`;
+  return { subject: `Invoice for Shipment ${s.tracking_number}`, message: msg };
+}
