@@ -47,7 +47,7 @@ export default function DeleteShipmentPage() {
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left">Date Sent</th>
                 <th className="px-4 py-6 text-left">Delivery Date</th>
@@ -56,13 +56,14 @@ export default function DeleteShipmentPage() {
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((s: any) => (
+              {isLoading && <TableRowSkeleton columns={9} rows={5} />}
+              {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6">
-                    <Badge variant="outline" className={statusBadgeClass(s.status)}>{s.status ?? "—"}</Badge>
+                  <td className="px-4 py-6 min-w-[130px]">
+                    <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
@@ -80,7 +81,7 @@ export default function DeleteShipmentPage() {
                   </td>
                 </tr>
               ))}
-              {!data?.length && (
+              {!isLoading && !data?.length && (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments.</td></tr>
               )}
             </tbody>
