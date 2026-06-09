@@ -95,11 +95,14 @@ export function buildCreatedEmail(s: ShipmentEmailCtx) {
   A shipment has been successfully registered with your contact details as the consignee. Please review the information below carefully and contact us immediately if anything does not match your records.
 </p>
 ${table(
+  `<tr>
+    <td style="padding:8px 0; width:50%; color:#111827; font-size:15px; font-weight:700;">Tracking ID</td>
+    <td style="padding:8px 0; font-size:15px; color:#7C3AED; font-weight:700;">${v(s.tracking_number)}</td>
+  </tr>` +
   row("Sender's Full Name", v(s.sender_name)) +
   row("Sender's Country", v(s.sender_country)) +
   row("Receiver's Full Name", v(s.receiver_name)) +
   row("Receiver's Country", v(s.receiver_country)) +
-  row("Tracking ID", v(s.tracking_number)) +
   row("Package Type", v(s.package_type)) +
   row("Weight", v(s.weight)) +
   row("Origin", v(s.origin_label)) +
