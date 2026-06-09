@@ -24,7 +24,6 @@ import LeafletMap from "@/components/LeafletMap";
 import PaymentModal from "@/components/PaymentModal";
 import PrintInvoice from "@/components/PrintInvoice";
 import ShipmentHistory from "@/components/ShipmentHistory";
-import trackingHero from "@/assets/tracking-hero.jpg";
 
 const COMPANY = {
  name: "Tranzex Route Logistics",
