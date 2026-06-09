@@ -15,7 +15,7 @@ export default function HoldSettingsPage() {
 
   useEffect(() => {
     supabase
-      .from("hold_settings")
+      .from("shipments")
       .select("*")
       .eq("id", 1)
       .maybeSingle()
@@ -33,7 +33,7 @@ export default function HoldSettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { error } = await supabase.from("hold_settings").upsert({ ...data, id: 1 });
+      const { error } = await supabase.from("shipments").upsert({ ...data, id: 1 });
       if (error) throw error;
       toast.success("Settings saved");
     } catch (err: any) {
