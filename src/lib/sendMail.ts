@@ -113,7 +113,7 @@ ${table(
   row("Weight", v(s.weight)) +
   row("Origin", v(s.origin_label)) +
   row("Destination", v(s.destination_label)) +
-  row("Expected Delivery", v(s.expected_delivery_date))
+  row("Expected Delivery", fmtDate(s.expected_delivery_date))
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#7C3AED")}
 ${CONFIDENTIALITY}`;
@@ -131,7 +131,7 @@ ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Origin", v(s.origin_label)) +
   row("Destination", v(s.destination_label)) +
-  row("Estimated Delivery", v(s.expected_delivery_date))
+  row("Estimated Delivery", fmtDate(s.expected_delivery_date))
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#1D4ED8")}
 ${CONFIDENTIALITY}`;
@@ -149,7 +149,7 @@ ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Current Location", v(s.current_location)) +
   row("Destination", v(s.destination_label)) +
-  row("Estimated Delivery", v(s.expected_delivery_date))
+  row("Estimated Delivery", fmtDate(s.expected_delivery_date))
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#B91C1C")}
 ${CONFIDENTIALITY}`;
@@ -183,7 +183,7 @@ ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Current Location", v(s.current_location)) +
   row("Destination", v(s.destination_label)) +
-  row("Estimated Delivery", v(s.expected_delivery_date))
+  row("Estimated Delivery", fmtDate(s.expected_delivery_date))
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#0E7490")}
 ${CONFIDENTIALITY}`;
