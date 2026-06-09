@@ -16,7 +16,7 @@ import { format } from "date-fns";
 export default function DeleteShipmentPage() {
   const [confirm, setConfirm] = useState<{ id: string; tracking: string } | null>(null);
 
-  const { data, refetch } = useQuery({
+  const { data, refetch, isLoading } = useQuery({
     queryKey: ["delete-shipments"],
     queryFn: async () => {
       const { data } = await supabase
