@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Package, Truck, PauseCircle, CheckCircle2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { statusBadgeClass } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
 
 function safeFormat(value: any, pattern: string): string {
@@ -40,7 +40,7 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: recent, refetch: refetchRecent } = useQuery({
+  const { data: recent, refetch: refetchRecent, isLoading: recentLoading } = useQuery({
     queryKey: ["dashboard-recent"],
     queryFn: async () => {
       const { data } = await supabase
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left">Date Sent</th>
                 <th className="px-4 py-6 text-left">Delivery Date</th>
@@ -134,17 +134,18 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {(recent ?? []).map((s: any) => (
+              {recentLoading && <TableRowSkeleton columns={8} rows={5} />}
+              {!recentLoading && (recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">
                     {s.tracking_number}
                   </td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6">
-                    <Badge variant="outline" className={statusBadgeClass(s.status)}>
+                  <td className="px-4 py-6 min-w-[130px]">
+                    <span className={statusBadgeClass(s.status)}>
                       {s.status ?? "—"}
-                    </Badge>
+                    </span>
                   </td>
 
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
@@ -154,12 +155,8 @@ export default function DashboardPage() {
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                 </tr>
               ))}
-              {!recent?.length && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
-                    No shipments yet.
-                  </td>
-                </tr>
+              {!recentLoading && !recent?.length && (
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">No shipments yet.</td></tr>
               )}
             </tbody>
           </table>

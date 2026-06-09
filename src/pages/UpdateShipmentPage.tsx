@@ -5,15 +5,13 @@ import { createPortal } from "react-dom";
 import { Loader2, MapPin, Edit, Truck, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { sendMail, buildStatusEmail } from "@/lib/sendMail";
 import { format } from "date-fns";
 
@@ -30,7 +28,7 @@ export default function UpdateShipmentPage() {
   const [comments, setComments] = useState("");
   const [date, setDate] = useState("");
 
-  const { data, refetch } = useQuery({
+  const { data, refetch, isLoading } = useQuery({
     queryKey: ["update-shipments"],
     queryFn: async () => {
       const { data } = await supabase
@@ -47,7 +45,8 @@ export default function UpdateShipmentPage() {
     setLocation(row.current_location ?? "");
     setAmount(row.amount_due != null ? String(row.amount_due) : "");
     setComments("");
-    setDate(new Date().toISOString().slice(0, 10));
+    // Date field now controls Estimated Delivery Date only — initialize from existing value
+    setDate(row.expected_delivery_date ? String(row.expected_delivery_date).slice(0, 10) : "");
   }
 
   function handleSave(e: FormEvent) {
@@ -70,6 +69,8 @@ export default function UpdateShipmentPage() {
         current_location: location || null,
         amount_due: amount === "" ? null : Number(amount),
         history: newHist,
+        // Date field in modal updates ONLY estimated delivery date — never date_sent
+        expected_delivery_date: date || null,
       };
       if (geo) {
         patch.current_stop_label = location;
@@ -86,7 +87,7 @@ export default function UpdateShipmentPage() {
           receiver_name: updateRow.receiver_name,
           current_location: location,
           destination_label: updateRow.destination_label,
-          expected_delivery_date: updateRow.expected_delivery_date,
+          expected_delivery_date: date || updateRow.expected_delivery_date,
           hold_amount: amount || updateRow.hold_amount,
         });
         if (tpl) {
@@ -123,7 +124,7 @@ export default function UpdateShipmentPage() {
                 <th className="px-4 py-6 text-left">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left">Date Sent</th>
                 <th className="px-4 py-6 text-left">Delivery Date</th>
@@ -132,13 +133,14 @@ export default function UpdateShipmentPage() {
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((s: any) => (
+              {isLoading && <TableRowSkeleton columns={9} rows={5} />}
+              {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">{s.tracking_number}</td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6">
-                    <Badge variant="outline" className={statusBadgeClass(s.status)}>{s.status ?? "—"}</Badge>
+                  <td className="px-4 py-6 min-w-[130px]">
+                    <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
@@ -146,12 +148,16 @@ export default function UpdateShipmentPage() {
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                   <td className="px-4 py-6">
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" className="w-32 bg-green-600 px-1 text-xs hover:bg-green-700" onClick={() => openUpdate(s)}>
-                        <Truck className="mr-1 h-3 w-3" /> Update Loc.
+                      <Button
+                        size="sm"
+                        className="min-h-[48px] bg-green-600 px-3 py-3 text-[13px] hover:bg-green-700"
+                        onClick={() => openUpdate(s)}
+                      >
+                        <Truck className="mr-1 h-3 w-3" /> Update Location
                       </Button>
                       <Button
                         size="sm"
-                        className="w-32 bg-blue-600 hover:bg-blue-700"
+                        className="min-h-[48px] bg-blue-600 px-3 py-3 text-[13px] hover:bg-blue-700"
                         onClick={() => { setEditId(s.id); setEditOpen(true); }}
                       >
                         <Edit className="mr-1 h-3 w-3" /> Edit Info
@@ -160,7 +166,7 @@ export default function UpdateShipmentPage() {
                   </td>
                 </tr>
               ))}
-              {!data?.length && (
+              {!isLoading && !data?.length && (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments.</td></tr>
               )}
             </tbody>
@@ -249,7 +255,7 @@ export default function UpdateShipmentPage() {
                   />
                 </div>
                 <div>
-                  <Label>Date (YYYY-MM-DD)</Label>
+                  <Label>Estimated Delivery Date (YYYY-MM-DD)</Label>
                   <input
                     type="text"
                     value={date}

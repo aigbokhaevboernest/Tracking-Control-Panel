@@ -137,7 +137,7 @@ function FL({ children }: { children: ReactNode }) {
   return <Label className="text-xs font-semibold text-gray-600">{children}</Label>;
 }
 
-const SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
+const SETTINGS_ID = 1;
 
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
@@ -190,7 +190,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           hold_headline: hs?.default_hold_headline ?? "",
           hold_body: hs?.default_hold_body ?? "",
           hold_footer_note: hs?.default_hold_footer ?? "",
-          hold_contact_email: hs?.support_email ?? "",
+          hold_contact_email: hs?.company_email ?? "",
           // Crypto
           crypto_wallet_address: hs?.default_crypto_wallet ?? "",
           payment_instruction_note: hs?.default_payment_note ?? "",

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
+const SETTINGS_ID = 1;
 
 export default function HoldSettingsPage() {
   const [data, setData] = useState<any>({});

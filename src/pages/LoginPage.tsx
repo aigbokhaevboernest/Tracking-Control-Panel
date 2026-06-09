@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Package, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -48,9 +48,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 px-4">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-xl">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="rounded-full bg-primary p-3 text-primary-foreground">
-            <Package className="h-7 w-7" />
-          </div>
+          <img
+            src="https://nzideivdechbxhepmlvz.supabase.co/storage/v1/object/public/shipment-assets/Tranzexroute.PNG"
+            alt="Tranzex Route"
+            className="h-16 w-16 object-contain"
+          />
           <h1 className="text-2xl font-bold">Admin Sign In</h1>
           <p className="text-sm text-muted-foreground">Shipment Tracking Dashboard</p>
         </div>
