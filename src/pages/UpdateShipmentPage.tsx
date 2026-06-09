@@ -240,7 +240,7 @@ export default function UpdateShipmentPage() {
                 <div>
                   <Label>Amount Due</Label>
                   <input
-                    type="number"
+                    type="text"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px", boxSizing: "border-box" }}
