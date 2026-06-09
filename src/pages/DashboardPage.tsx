@@ -145,8 +145,9 @@ export default function DashboardPage() {
                   </td>
 
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{safeFormat(s.date_sent, "PP")}</td>
+                  <td className="px-4 py-6">{safeFormat(s.expected_delivery_date, "PP")}</td>
+
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                 </tr>
               ))}
