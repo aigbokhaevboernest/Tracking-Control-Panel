@@ -4,13 +4,13 @@ import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { statusBadgeClass } from "@/lib/tracking";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
 
 export default function DeleteShipmentPage() {
