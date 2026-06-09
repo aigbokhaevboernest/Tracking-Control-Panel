@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { Package, Truck, PauseCircle, CheckCircle2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
@@ -9,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { statusBadgeClass } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { format } from "date-fns";
+
+function safeFormat(value: any, pattern: string): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  try { return format(d, pattern); } catch { return "—"; }
+}
+
 
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -55,8 +62,11 @@ export default function DashboardPage() {
         .limit(30);
       const entries: Array<{ tracking: string; receiver: string; status: string; location: string; date: string; comments: string }> = [];
       for (const s of data ?? []) {
-        const hist = (s.history as any[]) ?? [];
+        const hist: any[] = Array.isArray(s.history) ? (s.history as any[]) : [];
         for (const h of hist) {
+          if (!h || typeof h !== "object") continue;
+
+
           entries.push({
             tracking: s.tracking_number,
             receiver: s.receiver_name ?? "",
@@ -127,9 +137,7 @@ export default function DashboardPage() {
               {(recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs">
-                    <Link to={`/track/${s.tracking_number}`} className="text-primary underline">
-                      {s.tracking_number}
-                    </Link>
+                    {s.tracking_number}
                   </td>
                   <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
@@ -138,9 +146,11 @@ export default function DashboardPage() {
                       {s.status ?? "—"}
                     </Badge>
                   </td>
+
                   <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
+                  <td className="px-4 py-6">{safeFormat(s.date_sent, "PP")}</td>
+                  <td className="px-4 py-6">{safeFormat(s.expected_delivery_date, "PP")}</td>
+
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                 </tr>
               ))}
@@ -173,7 +183,7 @@ export default function DashboardPage() {
                 </div>
                 {a.comments && <div className="text-xs text-muted-foreground">{a.comments}</div>}
               </div>
-              <div className="text-xs text-muted-foreground">{a.date ? format(new Date(a.date), "PPp") : ""}</div>
+              <div className="text-xs text-muted-foreground">{a.date ? safeFormat(a.date, "PPp") : ""}</div>
             </li>
           ))}
           {!activity?.length && <li className="text-sm text-muted-foreground">No activity yet.</li>}
