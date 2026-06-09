@@ -143,7 +143,8 @@ export default function DashboardPage() {
                   <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.date_sent, "PP")}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.expected_delivery_date, "PP")}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
+<td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
+
                 </tr>
               ))}
               {!recentLoading && !recent?.length && (
