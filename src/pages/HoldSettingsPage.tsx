@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+const SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
+
 export default function HoldSettingsPage() {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -15,12 +17,12 @@ export default function HoldSettingsPage() {
 
   useEffect(() => {
     supabase
-      .from("shipments")
+      .from("hold_settings")
       .select("*")
-      .eq("id", 1)
+      .eq("id", SETTINGS_ID)
       .maybeSingle()
       .then(({ data }) => {
-        setData(data ?? { id: 1 });
+        setData(data ?? { id: SETTINGS_ID });
         setLoading(false);
       });
   }, []);
@@ -33,7 +35,9 @@ export default function HoldSettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { error } = await supabase.from("shipments").upsert({ ...data, id: 1 });
+      const { error } = await supabase
+        .from("hold_settings")
+        .upsert({ ...data, id: SETTINGS_ID });
       if (error) throw error;
       toast.success("Settings saved");
     } catch (err: any) {
@@ -50,7 +54,7 @@ export default function HoldSettingsPage() {
       <h2 className="text-2xl font-bold">Hold Settings</h2>
       <form onSubmit={handleSave} className="space-y-4">
 
-        {/* support mail */}
+        {/* Support Mail */}
         <Card className="p-5 space-y-3">
           <h3 className="font-semibold">Support Mail</h3>
           <div>
