@@ -85,7 +85,7 @@ function IconInput({
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-white pl-9 pr-3 py-1 text-sm shadow-sm outline-none transition focus:ring-1",
+          "flex h-11 w-full rounded-md border border-input bg-white pl-9 pr-3 py-1 text-[16px] shadow-sm outline-none transition focus:ring-1",
           rightIcon && "pr-10",
           c.ring,
           className,
@@ -107,7 +107,7 @@ function IconTextarea({
       <textarea
         rows={2}
         className={cn(
-          "flex w-full rounded-md border border-input bg-white pl-9 pr-3 py-2 text-sm shadow-sm outline-none transition focus:ring-1",
+          "flex w-full rounded-md border border-input bg-white pl-9 pr-3 py-2 text-[16px] shadow-sm outline-none transition focus:ring-1",
           c.ring,
         )}
         {...props}
@@ -125,7 +125,7 @@ function NativeSelect({
       <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
       <select
         className={cn(
-          "flex h-10 w-full appearance-none rounded-md border border-input bg-white pl-9 pr-8 py-1 text-sm shadow-sm outline-none transition focus:ring-1",
+          "flex h-11 w-full appearance-none rounded-md border border-input bg-white pl-9 pr-8 py-1 text-[16px] shadow-sm outline-none transition focus:ring-1",
           c.ring,
         )}
         {...props}
@@ -151,7 +151,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
       resolver: zodResolver(schema) as any,
-      defaultValues: { tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false } as any,
+      defaultValues: { tracking_number: generateTrackingNumber(), show_image: false, show_airport_step: false } as any,
     });
 
   const paymentMode = watch("payment_mode");
@@ -173,7 +173,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         }
       })();
     } else {
-      reset({ tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false } as any);
+      reset({ tracking_number: generateTrackingNumber(), show_image: false, show_airport_step: false } as any);
       setImageUrl(null);
       setProofUrl(null);
     }
@@ -272,192 +272,193 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="!top-8 !translate-y-0 w-[calc(100vw-2rem)] max-w-2xl max-h-[calc(100dvh-4rem)] gap-0 overflow-hidden rounded-2xl border-0 p-0 shadow-2xl [&>button]:hidden"
-      >
-        {/* Purple gradient header */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white rounded-t-2xl">
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <PackageIcon className="h-5 w-5" />
-            <span>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</span>
-          </DialogTitle>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="rounded-md p-1 text-white/90 hover:bg-white/10"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="fixed inset-0 w-full h-full max-w-none max-h-none m-0 rounded-none border-0 p-0 shadow-2xl translate-x-0 translate-y-0 top-0 left-0 gap-0 overflow-hidden flex flex-col [&>button]:hidden sm:inset-auto sm:top-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-2xl sm:h-[calc(100dvh-2rem)] sm:rounded-2xl">
 
-        {/* Body */}
-        <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto bg-white px-5 py-5">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Header */}
+          <div className="flex-shrink-0 flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white">
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <PackageIcon className="h-5 w-5" />
+              <span>{shipmentId ? "Edit Shipment" : "Register New Shipment"}</span>
+            </DialogTitle>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="rounded-md p-1 text-white/90 hover:bg-white/10"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            <Section title="Basic Info" color="blue">
-              <div className="space-y-1 md:col-span-2">
-                <FieldLabel>Tracking Number</FieldLabel>
-                <IconInput
-                  icon={Hash}
-                  color="blue"
-                  {...register("tracking_number")}
-                  rightIcon={
-                    <button
-                      type="button"
-                      onClick={() => { navigator.clipboard.writeText(trackingNumber ?? ""); toast.success("Copied"); }}
-                      className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  }
-                />
-                {errors.tracking_number && <p className="text-xs text-red-600">{errors.tracking_number.message}</p>}
-              </div>
-              <div className="space-y-1">
-                <FieldLabel>Status</FieldLabel>
-                <NativeSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
-                  <option value="">Select status</option>
-                  {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </NativeSelect>
-              </div>
-              <div className="flex items-center gap-2 pt-5">
-                <Switch
-                  checked={!!watch("show_airport_step")}
-                  onCheckedChange={(v) => setValue("show_airport_step", v)}
-                />
-                <Label className="text-xs">Show Airport Step on Public Page</Label>
-              </div>
-            </Section>
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto bg-white px-5 py-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
-            <Section title="Sender's Details" color="orange">
-              <div className="space-y-1"><FieldLabel>Full Name</FieldLabel><IconInput icon={User} color="orange" {...register("sender_name")} /></div>
-              <div className="space-y-1"><FieldLabel>Email</FieldLabel><IconInput icon={Mail} color="orange" type="email" {...register("sender_email")} /></div>
-              <div className="space-y-1"><FieldLabel>Phone</FieldLabel><IconInput icon={Phone} color="orange" {...register("sender_phone")} /></div>
-              <div className="space-y-1"><FieldLabel>Country</FieldLabel><IconInput icon={Globe} color="orange" {...register("sender_country")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Address</FieldLabel><IconTextarea icon={MapPin} color="orange" {...register("sender_address")} /></div>
-            </Section>
-
-            <Section title="Receiver's Details" color="red">
-              <div className="space-y-1"><FieldLabel>Full Name</FieldLabel><IconInput icon={User} color="red" {...register("receiver_name")} /></div>
-              <div className="space-y-1"><FieldLabel>Email</FieldLabel><IconInput icon={Mail} color="red" type="email" {...register("receiver_email")} /></div>
-              <div className="space-y-1"><FieldLabel>Phone</FieldLabel><IconInput icon={Phone} color="red" {...register("receiver_phone")} /></div>
-              <div className="space-y-1"><FieldLabel>Country</FieldLabel><IconInput icon={Globe} color="red" {...register("receiver_country")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Address</FieldLabel><IconTextarea icon={MapPin} color="red" {...register("receiver_address")} /></div>
-            </Section>
-
-            <Section title="Package / Other Details" color="violet">
-              <div className="space-y-1"><FieldLabel>Package Type</FieldLabel><IconInput icon={PackageIcon} color="violet" {...register("package_type")} /></div>
-              <div className="space-y-1"><FieldLabel>Weight</FieldLabel><IconInput icon={Scale} color="violet" {...register("weight")} /></div>
-              <div className="space-y-1"><FieldLabel>Date Sent</FieldLabel><IconInput icon={Calendar} color="violet" type="date" {...register("date_sent")} /></div>
-              <div className="space-y-1"><FieldLabel>Expected Delivery</FieldLabel><IconInput icon={Calendar} color="violet" type="date" {...register("expected_delivery_date")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Description (Parcel)</FieldLabel><IconTextarea icon={FileText} color="violet" {...register("description")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Comments</FieldLabel><IconTextarea icon={MessageSquare} color="violet" {...register("comments")} /></div>
-              <div className="space-y-2 md:col-span-2">
-                <FieldLabel>Package Image</FieldLabel>
-                <div className="flex items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-gray-50">
-                    <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setImageUrl)} />
-                  </label>
-                  {imageUrl && <img src={imageUrl} alt="package" className="h-16 w-16 rounded object-cover" />}
+              <Section title="Basic Info" color="blue">
+                <div className="space-y-1 md:col-span-2">
+                  <FieldLabel>Tracking Number</FieldLabel>
+                  <IconInput
+                    icon={Hash}
+                    color="blue"
+                    {...register("tracking_number")}
+                    rightIcon={
+                      <button
+                        type="button"
+                        onClick={() => { navigator.clipboard.writeText(trackingNumber ?? ""); toast.success("Copied"); }}
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    }
+                  />
+                  {errors.tracking_number && <p className="text-xs text-red-600">{errors.tracking_number.message}</p>}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 md:col-span-2">
-                <Switch checked={!!watch("show_image")} onCheckedChange={(v) => setValue("show_image", v)} />
-                <Label className="text-xs">Show Package Image on tracking page</Label>
-              </div>
-            </Section>
-
-            <Section title="Locations & Map" color="teal">
-              <div className="space-y-1">
-                <FieldLabel>Origin (search)</FieldLabel>
-                <IconInput
-                  icon={Search} color="teal" {...register("origin_label")}
-                  onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }}
-                />
-              </div>
-              <div className="space-y-1">
-                <FieldLabel>Current Stop (search)</FieldLabel>
-                <IconInput icon={Search} color="teal" {...register("current_stop_label")} />
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <FieldLabel>Destination (search)</FieldLabel>
-                <IconInput icon={Search} color="teal" {...register("destination_label")} />
-              </div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Current Location (display)</FieldLabel><IconInput icon={MapPin} color="teal" {...register("current_location")} /></div>
-
-              <div className="md:col-span-2">
-                <div className="flex items-center gap-2 pt-2 pb-1">
-                  <MapPin className="h-3 w-3 text-teal-600" />
-                  <span className="text-xs font-semibold uppercase tracking-wide text-teal-600">Map Labels</span>
+                <div className="space-y-1">
+                  <FieldLabel>Status</FieldLabel>
+                  <NativeSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
+                    <option value="">Select status</option>
+                    {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </NativeSelect>
                 </div>
-              </div>
-              <div className="space-y-1"><FieldLabel>Origin Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("origin_label")} /></div>
-              <div className="space-y-1"><FieldLabel>Current Stop Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("current_stop_label")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Destination Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("destination_label")} /></div>
-            </Section>
-
-            <Section title="Billing" color="green">
-              <div className="space-y-1"><FieldLabel>Amount Due</FieldLabel><IconInput icon={DollarSign} color="green" type="number" {...register("amount_due")} /></div>
-              <div className="space-y-1">
-                <FieldLabel>Payment Mode</FieldLabel>
-                <NativeSelect icon={CreditCard} color="green" {...register("payment_mode")} defaultValue="">
-                  <option value="">Select payment mode</option>
-                  <option value="Crypto">Crypto</option>
-                  <option value="Bank">Bank</option>
-                </NativeSelect>
-              </div>
-
-              {paymentMode === "Crypto" && (
-                <>
-                  <div className="space-y-1 md:col-span-2"><FieldLabel>Crypto Wallet Address</FieldLabel><IconInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
-                  <div className="space-y-1 md:col-span-2"><FieldLabel>Payment Instruction Note</FieldLabel><IconTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
-                </>
-              )}
-              {paymentMode === "Bank" && (
-                <>
-                  <div className="space-y-1"><FieldLabel>Bank Name</FieldLabel><IconInput icon={Building2} color="green" {...register("bank_name")} /></div>
-                  <div className="space-y-1"><FieldLabel>Account Number</FieldLabel><IconInput icon={Hash} color="green" {...register("bank_account_number")} /></div>
-                  <div className="space-y-1 md:col-span-2"><FieldLabel>Account Name</FieldLabel><IconInput icon={User} color="green" {...register("bank_account_name")} /></div>
-                  <div className="space-y-1 md:col-span-2"><FieldLabel>Bank Instruction Note</FieldLabel><IconTextarea icon={MessageSquare} color="green" {...register("bank_instruction_note")} /></div>
-                </>
-              )}
-            </Section>
-
-            <Section title="Customs Hold" color="amber">
-              <div className="space-y-1"><FieldLabel>Hold Headline</FieldLabel><IconInput icon={AlertTriangle} color="amber" {...register("hold_headline")} /></div>
-              <div className="space-y-1"><FieldLabel>Hold Amount</FieldLabel><IconInput icon={DollarSign} color="amber" {...register("hold_amount")} /></div>
-              <div className="space-y-1"><FieldLabel>Contact Email</FieldLabel><IconInput icon={Mail} color="amber" type="email" {...register("hold_contact_email")} /></div>
-              <div className="space-y-1"><FieldLabel>Footer Note</FieldLabel><IconInput icon={MessageSquare} color="amber" {...register("hold_footer_note")} /></div>
-              <div className="space-y-1 md:col-span-2"><FieldLabel>Hold Body</FieldLabel><IconTextarea icon={FileText} color="amber" {...register("hold_body")} /></div>
-            </Section>
-
-            <Section title="Proof of Delivery" color="emerald">
-              <div className="space-y-2 md:col-span-2">
-                <FieldLabel>Proof of Delivery Image</FieldLabel>
-                <div className="flex items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-gray-50">
-                    <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setProofUrl)} />
-                  </label>
-                  {proofUrl && <img src={proofUrl} alt="proof" className="h-16 w-16 rounded object-cover" />}
+                <div className="flex items-center gap-2 pt-5">
+                  <Switch
+                    checked={!!watch("show_airport_step")}
+                    onCheckedChange={(v) => setValue("show_airport_step", v)}
+                  />
+                  <Label className="text-xs">Show Airport Step on Public Page</Label>
                 </div>
-              </div>
-            </Section>
+              </Section>
 
-            <div className="flex justify-end pt-2">
-              <Button type="submit" disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 sm:w-auto">
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Truck className="mr-2 h-4 w-4" /> Save Shipment
-              </Button>
-            </div>
-          </form>
-        </div>
-      </DialogContent>
+              <Section title="Sender's Details" color="orange">
+                <div className="space-y-1"><FieldLabel>Full Name</FieldLabel><IconInput icon={User} color="orange" {...register("sender_name")} /></div>
+                <div className="space-y-1"><FieldLabel>Email</FieldLabel><IconInput icon={Mail} color="orange" type="email" {...register("sender_email")} /></div>
+                <div className="space-y-1"><FieldLabel>Phone</FieldLabel><IconInput icon={Phone} color="orange" {...register("sender_phone")} /></div>
+                <div className="space-y-1"><FieldLabel>Country</FieldLabel><IconInput icon={Globe} color="orange" {...register("sender_country")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Address</FieldLabel><IconTextarea icon={MapPin} color="orange" {...register("sender_address")} /></div>
+              </Section>
+
+              <Section title="Receiver's Details" color="red">
+                <div className="space-y-1"><FieldLabel>Full Name</FieldLabel><IconInput icon={User} color="red" {...register("receiver_name")} /></div>
+                <div className="space-y-1"><FieldLabel>Email</FieldLabel><IconInput icon={Mail} color="red" type="email" {...register("receiver_email")} /></div>
+                <div className="space-y-1"><FieldLabel>Phone</FieldLabel><IconInput icon={Phone} color="red" {...register("receiver_phone")} /></div>
+                <div className="space-y-1"><FieldLabel>Country</FieldLabel><IconInput icon={Globe} color="red" {...register("receiver_country")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Address</FieldLabel><IconTextarea icon={MapPin} color="red" {...register("receiver_address")} /></div>
+              </Section>
+
+              <Section title="Package / Other Details" color="violet">
+                <div className="space-y-1"><FieldLabel>Package Type</FieldLabel><IconInput icon={PackageIcon} color="violet" {...register("package_type")} /></div>
+                <div className="space-y-1"><FieldLabel>Weight</FieldLabel><IconInput icon={Scale} color="violet" {...register("weight")} /></div>
+                <div className="space-y-1"><FieldLabel>Date Sent</FieldLabel><IconInput icon={Calendar} color="violet" type="date" {...register("date_sent")} /></div>
+                <div className="space-y-1"><FieldLabel>Expected Delivery</FieldLabel><IconInput icon={Calendar} color="violet" type="date" {...register("expected_delivery_date")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Description (Parcel)</FieldLabel><IconTextarea icon={FileText} color="violet" {...register("description")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Comments</FieldLabel><IconTextarea icon={MessageSquare} color="violet" {...register("comments")} /></div>
+                <div className="space-y-2 md:col-span-2">
+                  <FieldLabel>Package Image</FieldLabel>
+                  <div className="flex items-center gap-3">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-gray-50">
+                      <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setImageUrl)} />
+                    </label>
+                    {imageUrl && <img src={imageUrl} alt="package" className="h-16 w-16 rounded object-cover" />}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 md:col-span-2">
+                  <Switch checked={!!watch("show_image")} onCheckedChange={(v) => setValue("show_image", v)} />
+                  <Label className="text-xs">Show Package Image on tracking page</Label>
+                </div>
+              </Section>
+
+              <Section title="Locations & Map" color="teal">
+                <div className="space-y-1">
+                  <FieldLabel>Origin (search)</FieldLabel>
+                  <IconInput
+                    icon={Search} color="teal" {...register("origin_label")}
+                    onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <FieldLabel>Current Stop (search)</FieldLabel>
+                  <IconInput icon={Search} color="teal" {...register("current_stop_label")} />
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <FieldLabel>Destination (search)</FieldLabel>
+                  <IconInput icon={Search} color="teal" {...register("destination_label")} />
+                </div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Current Location (display)</FieldLabel><IconInput icon={MapPin} color="teal" {...register("current_location")} /></div>
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2 pt-2 pb-1">
+                    <MapPin className="h-3 w-3 text-teal-600" />
+                    <span className="text-xs font-semibold uppercase tracking-wide text-teal-600">Map Labels</span>
+                  </div>
+                </div>
+                <div className="space-y-1"><FieldLabel>Origin Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("origin_label")} /></div>
+                <div className="space-y-1"><FieldLabel>Current Stop Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("current_stop_label")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Destination Label</FieldLabel><IconInput icon={MapPin} color="teal" {...register("destination_label")} /></div>
+              </Section>
+
+              <Section title="Billing" color="green">
+                <div className="space-y-1"><FieldLabel>Amount Due</FieldLabel><IconInput icon={DollarSign} color="green" type="number" {...register("amount_due")} /></div>
+                <div className="space-y-1">
+                  <FieldLabel>Payment Mode</FieldLabel>
+                  <NativeSelect icon={CreditCard} color="green" {...register("payment_mode")} defaultValue="">
+                    <option value="">Select payment mode</option>
+                    <option value="Crypto">Crypto</option>
+                    <option value="Bank">Bank</option>
+                  </NativeSelect>
+                </div>
+                {paymentMode === "Crypto" && (
+                  <>
+                    <div className="space-y-1 md:col-span-2"><FieldLabel>Crypto Wallet Address</FieldLabel><IconInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
+                    <div className="space-y-1 md:col-span-2"><FieldLabel>Payment Instruction Note</FieldLabel><IconTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
+                  </>
+                )}
+                {paymentMode === "Bank" && (
+                  <>
+                    <div className="space-y-1"><FieldLabel>Bank Name</FieldLabel><IconInput icon={Building2} color="green" {...register("bank_name")} /></div>
+                    <div className="space-y-1"><FieldLabel>Account Number</FieldLabel><IconInput icon={Hash} color="green" {...register("bank_account_number")} /></div>
+                    <div className="space-y-1 md:col-span-2"><FieldLabel>Account Name</FieldLabel><IconInput icon={User} color="green" {...register("bank_account_name")} /></div>
+                    <div className="space-y-1 md:col-span-2"><FieldLabel>Bank Instruction Note</FieldLabel><IconTextarea icon={MessageSquare} color="green" {...register("bank_instruction_note")} /></div>
+                  </>
+                )}
+              </Section>
+
+              <Section title="Customs Hold" color="amber">
+                <div className="space-y-1"><FieldLabel>Hold Headline</FieldLabel><IconInput icon={AlertTriangle} color="amber" {...register("hold_headline")} /></div>
+                <div className="space-y-1"><FieldLabel>Hold Amount</FieldLabel><IconInput icon={DollarSign} color="amber" {...register("hold_amount")} /></div>
+                <div className="space-y-1"><FieldLabel>Contact Email</FieldLabel><IconInput icon={Mail} color="amber" type="email" {...register("hold_contact_email")} /></div>
+                <div className="space-y-1"><FieldLabel>Footer Note</FieldLabel><IconInput icon={MessageSquare} color="amber" {...register("hold_footer_note")} /></div>
+                <div className="space-y-1 md:col-span-2"><FieldLabel>Hold Body</FieldLabel><IconTextarea icon={FileText} color="amber" {...register("hold_body")} /></div>
+              </Section>
+
+              <Section title="Proof of Delivery" color="emerald">
+                <div className="space-y-2 md:col-span-2">
+                  <FieldLabel>Proof of Delivery Image</FieldLabel>
+                  <div className="flex items-center gap-3">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-gray-50">
+                      <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setProofUrl)} />
+                    </label>
+                    {proofUrl && <img src={proofUrl} alt="proof" className="h-16 w-16 rounded object-cover" />}
+                  </div>
+                </div>
+              </Section>
+
+              <div className="pb-4">
+                <Button type="submit" disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700">
+                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Truck className="mr-2 h-4 w-4" /> Save Shipment
+                </Button>
+              </div>
+
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ConfirmNotifyModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
@@ -465,6 +466,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           if (pendingValues) await doSave(pendingValues, send);
         }}
       />
-    </Dialog>
+    </>
   );
 }
