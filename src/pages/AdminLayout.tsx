@@ -64,9 +64,11 @@ export default function AdminLayout() {
         )}
       >
         <div className="flex items-center gap-3 border-b px-4 py-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
+          <img
+            src="https://nzideivdechbxhepmlvz.supabase.co/storage/v1/object/public/shipment-assets/Tranzexroute.PNG"
+            alt="Tranzex Route"
+            className="h-10 w-10 shrink-0 rounded-full object-contain bg-white"
+          />
           <div className={cn("overflow-hidden", desktopCollapsed && "lg:hidden")}>
             <div className="text-xs text-muted-foreground">Logged in as</div>
             <div className="font-semibold tracking-wider">ADMIN</div>
