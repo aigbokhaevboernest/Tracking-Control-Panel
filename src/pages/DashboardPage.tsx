@@ -155,6 +155,9 @@ export default function DashboardPage() {
                   <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                 </tr>
               ))}
+              {!recentLoading && !recent?.length && (
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">No shipments yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
