@@ -149,19 +149,20 @@ export default function UpdateShipmentPage() {
                   <td className="px-4 py-6">
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        size="sm"
-                        className="min-h-[48px] bg-green-600 px-3 py-3 text-[13px] hover:bg-green-700"
-                        onClick={() => openUpdate(s)}
-                      >
-                        <Truck className="mr-1 h-3 w-3" /> Update Location
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="min-h-[48px] bg-blue-600 px-3 py-3 text-[13px] hover:bg-blue-700"
-                        onClick={() => { setEditId(s.id); setEditOpen(true); }}
-                      >
-                        <Edit className="mr-1 h-3 w-3" /> Edit Info
-                      </Button>
+  size="sm"
+  className="w-[90px] min-h-[48px] bg-green-600 px-3 py-2 text-[13px] leading-tight hover:bg-green-700 whitespace-normal text-center"
+  onClick={() => openUpdate(s)}
+>
+  <Truck className="mr-1 h-3 w-3 shrink-0" /> Update Location
+</Button>
+<Button
+  size="sm"
+  className="w-[90px] h-[36px] bg-blue-600 px-3 text-[13px] hover:bg-blue-700"
+  onClick={() => { setEditId(s.id); setEditOpen(true); }}
+>
+  <Edit className="mr-1 h-3 w-3" /> Edit Info
+</Button>
+
                     </div>
                   </td>
                 </tr>
