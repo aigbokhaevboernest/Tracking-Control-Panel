@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, MapPin, Edit, Truck } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Loader2, MapPin, Edit, Truck, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
@@ -168,51 +168,134 @@ export default function UpdateShipmentPage() {
         </div>
       </Card>
 
-      <Dialog open={!!updateRow} onOpenChange={(v) => !v && setUpdateRow(null)}>
-        <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
-          <div className="flex items-center justify-between bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-5 py-4 text-white">
-            <DialogHeader className="space-y-0">
-              <DialogTitle className="flex items-center gap-2 text-white">
-                <MapPin className="h-5 w-5" /> Update Location · {updateRow?.tracking_number}
-              </DialogTitle>
-            </DialogHeader>
-          </div>
-          <form onSubmit={handleSave} className="space-y-3 p-5">
-            <div>
-              <Label>Status</Label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm"
+      {/* Update Location Modal — using createPortal to avoid z-index issues */}
+      {!!updateRow && createPortal(
+        <>
+          {/* Backdrop */}
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(0,0,0,0.55)" }}
+            onClick={() => setUpdateRow(null)}
+          />
+
+          {/* Modal */}
+          <div style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+            width: "calc(100vw - 32px)",
+            maxWidth: 520,
+            borderRadius: 14,
+            overflow: "hidden",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
+            background: "#fff",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          }}>
+            {/* Header */}
+            <div style={{
+              flexShrink: 0,
+              background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
+              padding: "16px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              color: "#fff",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 15 }}>
+                <MapPin size={18} />
+                <span>Update Location · {updateRow?.tracking_number}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUpdateRow(null)}
+                style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 6, padding: 6, cursor: "pointer", color: "#fff", display: "flex" }}
               >
-                <option value="">Select status</option>
-                {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+                <X size={16} />
+              </button>
             </div>
-            <div>
-              <Label>Current Location</Label>
-              <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+
+            {/* Scrollable body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px 20px 24px" }}>
+              <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px" }}
+                  >
+                    <option value="">Select status</option>
+                    {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label>Current Location</Label>
+                  <input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <Label>Amount Due</Label>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <Label>Date (YYYY-MM-DD)</Label>
+                  <input
+                    type="text"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    placeholder="YYYY-MM-DD"
+                    style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <Label>Comments</Label>
+                  <textarea
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                    rows={3}
+                    style={{ fontSize: 16, marginTop: 4, width: "100%", borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "10px 12px", boxSizing: "border-box", resize: "vertical" }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    width: "100%",
+                    padding: "13px 0",
+                    background: submitting ? "#7c3aed99" : "#7c3aed",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    fontSize: 16,
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    marginTop: 4,
+                  }}
+                >
+                  {submitting && <Loader2 size={16} className="animate-spin" />}
+                  {submitting ? "Saving…" : "Save"}
+                </button>
+              </form>
             </div>
-            <div>
-              <Label>Amount Due</Label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-            <div>
-              <Label>Date</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div>
-              <Label>Comments</Label>
-              <Textarea value={comments} onChange={(e) => setComments(e.target.value)} />
-            </div>
-            <DialogFooter>
-              <Button type="submit" disabled={submitting}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </>,
+        document.body
+      )}
 
       <ShipmentFormModal open={editOpen} onOpenChange={setEditOpen} shipmentId={editId} onSaved={() => refetch()} />
 
@@ -221,7 +304,6 @@ export default function UpdateShipmentPage() {
         onOpenChange={setConfirmOpen}
         onConfirm={async (send) => { await doSave(send); }}
       />
-
     </div>
   );
 }
