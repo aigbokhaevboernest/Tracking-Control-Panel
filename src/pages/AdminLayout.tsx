@@ -9,7 +9,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  ShieldCheck,
   Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
