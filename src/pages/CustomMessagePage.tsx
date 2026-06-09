@@ -5,12 +5,14 @@ import { Loader2, Send, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { sendMail, buildCustomEmail } from "@/lib/sendMail";
 
 export default function CustomMessagePage() {
   const [shipmentId, setShipmentId] = useState("");
+  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -30,18 +32,20 @@ export default function CustomMessagePage() {
   async function handleSend() {
     if (!selected) return toast.error("Select a shipment");
     if (!selected.receiver_email) return toast.error("Receiver has no email on file");
+    if (!subject.trim()) return toast.error("Subject is required");
     if (!message.trim()) return toast.error("Message is required");
     setSending(true);
-    const { subject, message: html } = buildCustomEmail(selected.tracking_number, message);
+    const { message: html } = buildCustomEmail(selected.tracking_number, message);
     const result = await sendMail({
       email: selected.receiver_email,
-      subject,
+      subject: subject.trim(),
       first_name: selected.receiver_name?.split(" ")[0] ?? "",
       message: html,
     });
     setSending(false);
     if (result.success) {
       toast.success("Email sent");
+      setSubject("");
       setMessage("");
     } else {
       toast.error("Email failed", { description: result.error });
@@ -68,6 +72,14 @@ export default function CustomMessagePage() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="space-y-1">
+          <Label>Subject</Label>
+          <Input
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Email subject…"
+          />
         </div>
         <div className="space-y-1">
           <Label>Message</Label>
