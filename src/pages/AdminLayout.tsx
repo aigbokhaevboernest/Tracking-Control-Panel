@@ -62,12 +62,11 @@ export default function AdminLayout() {
           desktopCollapsed ? "lg:w-16" : "lg:w-64",
         )}
       >
-        
-          <div className={cn("overflow-hidden", desktopCollapsed && "lg:hidden")}>
-            <div className="text-xs text-muted-foreground">Logged in as</div>
-            <div className="font-semibold tracking-wider">ADMIN</div>
-          </div>
+        <div className={cn("p-4 overflow-hidden", desktopCollapsed && "lg:hidden")}>
+          <div className="text-xs text-muted-foreground">Logged in as</div>
+          <div className="font-semibold tracking-wider">ADMIN</div>
         </div>
+
         <nav className="flex-1 space-y-1 overflow-y-auto p-2">
           {nav.map((item) => {
             const active = item.end ? pathname === item.to : pathname.startsWith(item.to);
