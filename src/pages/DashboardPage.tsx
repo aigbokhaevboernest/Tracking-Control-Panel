@@ -16,7 +16,6 @@ function safeFormat(value: any, pattern: string): string {
   try { return format(d, pattern); } catch { return "—"; }
 }
 
-
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -65,8 +64,6 @@ export default function DashboardPage() {
         const hist: any[] = Array.isArray(s.history) ? (s.history as any[]) : [];
         for (const h of hist) {
           if (!h || typeof h !== "object") continue;
-
-
           entries.push({
             tracking: s.tracking_number,
             receiver: s.receiver_name ?? "",
@@ -123,13 +120,13 @@ export default function DashboardPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-6 text-left">Tracking #</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
-                <th className="px-4 py-6 text-left min-w-[130px]">Status</th>
+                <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
-                <th className="px-4 py-6 text-left">Date Sent</th>
-                <th className="px-4 py-6 text-left">Delivery Date</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Delivery Date</th>
                 <th className="px-4 py-6 text-left">Amount</th>
               </tr>
             </thead>
@@ -137,22 +134,16 @@ export default function DashboardPage() {
               {recentLoading && <TableRowSkeleton columns={8} rows={5} />}
               {!recentLoading && (recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
-                  <td className="px-4 py-6 font-mono text-xs">
-                    {s.tracking_number}
+                  <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
+                  <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
+                  <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
+                    <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
-                  <td className="px-4 py-6">{s.receiver_name ?? "—"}</td>
-                  <td className="px-4 py-6 max-w-[200px] truncate">{s.description ?? "—"}</td>
-                  <td className="px-4 py-6 min-w-[130px]">
-                    <span className={statusBadgeClass(s.status)}>
-                      {s.status ?? "—"}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-6">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6">{safeFormat(s.date_sent, "PP")}</td>
-                  <td className="px-4 py-6">{safeFormat(s.expected_delivery_date, "PP")}</td>
-
-                  <td className="px-4 py-6">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.date_sent, "PP")}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.expected_delivery_date, "PP")}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? `$${s.amount_due}` : "—"}</td>
                 </tr>
               ))}
               {!recentLoading && !recent?.length && (
