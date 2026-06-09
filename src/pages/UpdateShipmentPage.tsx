@@ -255,7 +255,7 @@ export default function UpdateShipmentPage() {
                   />
                 </div>
                 <div>
-                  <Label>Date (YYYY-MM-DD)</Label>
+                  <Label>Estimated Delivery Date (YYYY-MM-DD)</Label>
                   <input
                     type="text"
                     value={date}
