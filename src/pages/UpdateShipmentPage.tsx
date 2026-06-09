@@ -28,7 +28,7 @@ export default function UpdateShipmentPage() {
   const [comments, setComments] = useState("");
   const [date, setDate] = useState("");
 
-  const { data, refetch } = useQuery({
+  const { data, refetch, isLoading } = useQuery({
     queryKey: ["update-shipments"],
     queryFn: async () => {
       const { data } = await supabase
