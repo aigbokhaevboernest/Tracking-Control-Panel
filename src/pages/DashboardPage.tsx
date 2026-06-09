@@ -62,8 +62,9 @@ export default function DashboardPage() {
         .limit(30);
       const entries: Array<{ tracking: string; receiver: string; status: string; location: string; date: string; comments: string }> = [];
       for (const s of data ?? []) {
-        const hist = (s.history as any[]) ?? [];
+        const hist = Array.isArray(s.history) ? s.history : [];
         for (const h of hist) {
+
           entries.push({
             tracking: s.tracking_number,
             receiver: s.receiver_name ?? "",
