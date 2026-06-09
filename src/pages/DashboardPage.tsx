@@ -40,7 +40,7 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: recent, refetch: refetchRecent } = useQuery({
+  const { data: recent, refetch: refetchRecent, isLoading: recentLoading } = useQuery({
     queryKey: ["dashboard-recent"],
     queryFn: async () => {
       const { data } = await supabase
