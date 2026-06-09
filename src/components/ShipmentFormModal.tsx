@@ -435,7 +435,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
             </Section>
 
             <Section title="Billing" color="green">
-              <div className="space-y-1"><FL>Amount Due</FL><FInput icon={DollarSign} color="green" type="number" {...register("amount_due")} /></div>
+              <div className="space-y-1"><FL>Amount Due</FL><FInput icon={DollarSign} color="green" type="text" {...register("amount_due")} /></div>
               <div className="space-y-1">
                 <FL>Payment Mode</FL>
                 <FSelect icon={CreditCard} color="green" {...register("payment_mode")} defaultValue="">
