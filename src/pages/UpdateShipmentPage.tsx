@@ -143,7 +143,7 @@ export default function UpdateShipmentPage() {
                   <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
-                  {s.amount_due != null ? s.amount_due : "—"}
+                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
                   <td className="px-4 py-6">
                     <div className="flex flex-wrap gap-2">
                       <Button
