@@ -379,7 +379,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
            <Section title="Package Details" color="violet">
              <div className="space-y-1"><FL>Package Type</FL><FInput icon={PackageIcon} color="violet" {...register("package_type")} /></div>
              <div className="space-y-1"><FL>Weight</FL><FInput icon={Scale} color="violet" {...register("weight")} /></div>
-             <div className="space-y-1"><FL>Date Sent</FL><FInput icon={Calendar} color="violet" type="text" placeholder="YYYY-MM-DD" {...register("date_sent")} /></div>
+             <div className="space-y-1"><FL>Date Sent</FL><FInput icon={Calendar} color="violet" type="date" {...register("date_sent")} /></div>
              <div className="space-y-1"><FL>Expected Delivery</FL><FInput icon={Calendar} color="violet" type="text" placeholder="YYYY-MM-DD" {...register("expected_delivery_date")} /></div>
              <div className="space-y-1 sm:col-span-2"><FL>Description</FL><FTextarea icon={FileText} color="violet" {...register("description")} /></div>
              <div className="space-y-1 sm:col-span-2"><FL>Comments</FL><FTextarea icon={MessageSquare} color="violet" {...register("comments")} /></div>
