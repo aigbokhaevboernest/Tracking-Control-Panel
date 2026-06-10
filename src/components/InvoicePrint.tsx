@@ -24,6 +24,26 @@ function StampSVG({ label, color }: { label: string; color: string }) {
   );
 }
 
+function invoiceBadgeStyle(status?: string | null): React.CSSProperties {
+  const base: React.CSSProperties = { padding: "3px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700, letterSpacing: "0.06em" };
+  switch (status) {
+    case "Origin Warehouse":
+      return { ...base, border: "1px solid #93c5fd", background: "#dbeafe", color: "#1e40af" };
+    case "In-Transit":
+      return { ...base, border: "1px solid #fca5a5", background: "#fee2e2", color: "#dc2626" };
+    case "On Hold":
+      return { ...base, border: "1px solid #fde047", background: "#fef9c3", color: "#854d0e" };
+    case "Arrived At Nearest Airport":
+      return { ...base, border: "1px solid #67e8f9", background: "#cffafe", color: "#0e7490" };
+    case "Pick-Up":
+      return { ...base, border: "1px solid #93c5fd", background: "#dbeafe", color: "#1e40af" };
+    case "Delivered":
+      return { ...base, border: "1px solid #86efac", background: "#dcfce7", color: "#15803d" };
+    default:
+      return { ...base, border: "1px solid #d1d5db", background: "#f3f4f6", color: "#374151" };
+  }
+}
+
 export function InvoicePrint({ open, onClose, shipment: s, onSend, sending }: InvoicePrintProps) {
   if (!open || !s) return null;
 
