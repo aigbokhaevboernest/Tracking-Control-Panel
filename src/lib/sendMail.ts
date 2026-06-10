@@ -6,7 +6,8 @@ export interface SendMailArgs {
   email: string;
   subject: string;
   first_name?: string;
-  message: string;
+  message?: string;
+  html_body?: string;
 }
 
 export interface SendMailResult {
@@ -36,7 +37,8 @@ export async function sendMail(args: SendMailArgs): Promise<SendMailResult> {
         to: args.email,
         subject: args.subject,
         first_name: args.first_name ?? "",
-        message: args.message,
+        message: args.message ?? "",
+        html_body: args.html_body,
       }),
     });
 
@@ -158,7 +160,7 @@ ${CONFIDENTIALITY}`;
 
 export function buildCustomsHoldEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">⚠ CUSTOMS INSPECTION HOLD</h2>
+<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">&#9888; CUSTOMS INSPECTION HOLD</h2>
 <p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
   Your shipment is currently being held by customs authorities for inspection and clearance. A customs processing fee must be settled before your shipment can continue to its destination. Once payment is confirmed, delivery will resume immediately. Please act promptly to avoid further delays.
 </p>
@@ -339,7 +341,6 @@ export function buildInvoiceEmail(
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const amount = s.amount_due != null && s.amount_due !== "" ? String(s.amount_due) : "—";
   const isOnHold = s.status === "ON HOLD" || s.status === "Customs Hold";
-  const stampColor = isOnHold ? "#d97706" : "#dc2626";
 
   const holdSection = isOnHold ? `
     <tr><td colspan="2" style="padding:0 0 16px 0;">
@@ -354,7 +355,7 @@ export function buildInvoiceEmail(
       </table>
     </td></tr>` : "";
 
-  const msg = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -468,5 +469,5 @@ ${CONFIDENTIALITY}
 </body>
 </html>`;
 
-  return { subject: `Invoice for Shipment ${v(s.tracking_number)}`, message: msg };
+  return { subject: `Invoice for Shipment ${v(s.tracking_number)}`, html };
 }
