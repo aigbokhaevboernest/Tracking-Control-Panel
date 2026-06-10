@@ -18,15 +18,11 @@ import { cn } from "@/lib/utils";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
 import { sendMail, buildCreatedEmail, buildStatusEmail } from "@/lib/sendMail";
 
-const numOrNull = z.preprocess(
-  (v) => (v === "" || v == null ? null : Number(v)),
-  z.number().nullable().optional()
-);
 const optStr = z.string().nullable().optional().or(z.literal("").transform(() => null));
 
 const schema = z.object({
   tracking_number: z.string().min(3, "Required"),
-  status: optStr, current_location: optStr, amount_due: numOrNull, payment_mode: optStr,
+  status: optStr, current_location: optStr, amount_due: optStr, payment_mode: optStr,
   comments: optStr, origin_label: optStr, current_stop_label: optStr, destination_label: optStr,
   package_type: optStr, weight: optStr, description: optStr, date_sent: optStr,
   expected_delivery_date: optStr, show_image: z.boolean().optional(), show_airport_step: z.boolean().optional(),
@@ -186,15 +182,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           tracking_number: generateTrackingNumber(),
           show_image: true,
           show_airport_step: false,
-          // Customs Hold
           hold_headline: hs?.default_hold_headline ?? "",
           hold_body: hs?.default_hold_body ?? "",
           hold_footer_note: hs?.default_hold_footer ?? "",
           hold_contact_email: hs?.company_email ?? "",
-          // Crypto
           crypto_wallet_address: hs?.default_crypto_wallet ?? "",
           payment_instruction_note: hs?.default_payment_note ?? "",
-          // Bank
           bank_name: hs?.default_bank_name ?? "",
           bank_account_number: hs?.default_bank_account_number ?? "",
           bank_account_name: hs?.default_bank_account_name ?? "",
