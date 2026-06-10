@@ -71,11 +71,12 @@ export default function InvoicesPage() {
         },
       );
       const res = await sendMail({
-        email: preview.receiver_email,
-        subject: tpl.subject,
-        first_name: preview.receiver_name?.split(" ")[0] ?? "",
-        message: tpl.message,
-      });
+  email: preview.receiver_email,
+  subject: tpl.subject,
+  first_name: preview.receiver_name?.split(" ")[0] ?? "",
+  html_body: tpl.html,  // 👈 pass as html_body
+});
+
       if (res.success) {
         toast.success(`Invoice sent to ${preview.receiver_email} successfully`);
         setPreview(null);
