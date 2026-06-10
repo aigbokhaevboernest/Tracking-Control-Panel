@@ -33,7 +33,7 @@ export default function UpdateShipmentPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,receiver_email,description,status,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label,hold_amount")
+        .select("id,tracking_number,receiver_name,receiver_email,description,status,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
         .order("updated_at", { ascending: false });
       return data ?? [];
     },
@@ -86,7 +86,7 @@ export default function UpdateShipmentPage() {
           current_location: location,
           destination_label: updateRow.destination_label,
           expected_delivery_date: date || updateRow.expected_delivery_date,
-          hold_amount: amount || updateRow.hold_amount,
+          amount_due: amount || String(updateRow.amount_due ?? ""),
         });
         if (tpl) {
           const res = await sendMail({
@@ -126,7 +126,7 @@ export default function UpdateShipmentPage() {
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Delivery Date</th>
-                <th className="px-4 py-6 text-left">Amount</th>
+                <th className="px-4 py-6 text-left">Amount Due</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Actions</th>
               </tr>
             </thead>
