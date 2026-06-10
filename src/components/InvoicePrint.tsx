@@ -27,7 +27,7 @@ function StampSVG({ label, color }: { label: string; color: string }) {
 export function InvoicePrint({ open, onClose, shipment: s, onSend, sending }: InvoicePrintProps) {
   if (!open || !s) return null;
 
-  const isOnHold = s.status === "ON HOLD" || s.status === "Customs Hold";
+  const isOnHold = s.status === "On Hold" || s.status === "Customs Hold";
   const stampColor = isOnHold ? "#d97706" : "#dc2626";
   const issued = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
@@ -132,7 +132,7 @@ export function InvoicePrint({ open, onClose, shipment: s, onSend, sending }: In
           <div style={styles.trackingLabel}>Tracking Number</div>
           <div style={styles.trackingNum}>{s.tracking_number}</div>
           <div style={styles.trackingMeta}>
-            <span style={isOnHold ? styles.badgeHold : styles.badgeNormal}>
+            <span style={invoiceBadgeStyle(s.status)}>
               {(s.status || "").toUpperCase()}
             </span>
             {s.current_location && (
