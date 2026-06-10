@@ -9,7 +9,7 @@ import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { sendMail, buildInvoiceEmail } from "@/lib/sendMail";
 import { InvoicePrint } from "@/components/InvoicePrint";
 
-const SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
+const SETTINGS_ID = 1;
 
 export default function InvoicesPage() {
   const [preview, setPreview] = useState<any>(null);

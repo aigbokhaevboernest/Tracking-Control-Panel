@@ -91,7 +91,7 @@ if (geo) {
           current_location: location,
           destination_label: updateRow.destination_label,
           expected_delivery_date: date || updateRow.expected_delivery_date,
-          amount_due: amount || String(updateRow.amount_due ?? ""),
+          
         });
         if (tpl) {
           const res = await sendMail({

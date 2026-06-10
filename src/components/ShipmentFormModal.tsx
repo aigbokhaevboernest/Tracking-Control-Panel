@@ -142,6 +142,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const [uploading, setUploading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [ready, setReady] = useState(false);
 
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
@@ -163,6 +164,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
   useEffect(() => {
     if (!open) return;
+    setReady(false);
     (async () => {
       if (shipmentId) {
         const { data } = await supabase.from("shipments").select("*").eq("id", shipmentId).single();
@@ -196,6 +198,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         setImageUrl(null);
         setProofUrl(null);
       }
+      setReady(true);
     })();
   }, [open, shipmentId, reset]);
 
@@ -348,7 +351,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           background: "#fff",
           padding: "20px 20px 32px",
         }}>
-          <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {ready ? (<form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
             <Section title="Basic Info" color="blue">
               <div className="space-y-1 sm:col-span-2">
@@ -451,7 +454,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
             <Section title="Customs Hold" color="amber">
               <div className="space-y-1"><FL>Hold Headline</FL><FInput icon={AlertTriangle} color="amber" {...register("hold_headline")} /></div>
-              <div className="space-y-1"><FL>Hold Amount</FL><FInput icon={DollarSign} color="amber" {...register("hold_amount")} /></div>
+              
               <div className="space-y-1"><FL>Contact Email</FL><FInput icon={Mail} color="amber" type="email" {...register("hold_contact_email")} /></div>
               <div className="space-y-1"><FL>Footer Note</FL><FInput icon={MessageSquare} color="amber" {...register("hold_footer_note")} /></div>
               <div className="space-y-1 sm:col-span-2"><FL>Hold Body</FL><FTextarea icon={FileText} color="amber" {...register("hold_body")} /></div>
@@ -494,7 +497,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
               {submitting ? "Saving…" : "Save Shipment"}
             </button>
 
-          </form>
+          </form>) : (<div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-purple-600" /></div>)}
         </div>
       </div>
 
