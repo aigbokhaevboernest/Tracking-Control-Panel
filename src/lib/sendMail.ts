@@ -165,7 +165,7 @@ export function buildCustomsHoldEmail(s: ShipmentEmailCtx) {
 ${badge("ON CUSTOMS HOLD", "#FEF3C7", "#D97706")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
-  `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:5px 0; font-size:14px; color:#D97706; font-weight:bold;">${v(s.hold_amount)}</td></tr>`
+  `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:5px 0; font-size:14px; color:#D97706; font-weight:bold;">${v(s.amount_due)}</td></tr>`
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW")}
 ${CONFIDENTIALITY}`;
