@@ -64,17 +64,22 @@ export default function UpdateShipmentPage() {
         { status, location, date, comments },
       ];
       const patch: any = {
-        status: status || null,
-        current_location: location || null,
-        amount_due: amount === "" ? null : Number(amount),
-        history: newHist,
-        expected_delivery_date: date || null,
-      };
-      if (geo) {
-        patch.current_stop_label = location;
-        patch.current_stop_lat = geo.lat;
-        patch.current_stop_lng = geo.lng;
-      }
+  history: newHist,
+};
+
+if (status) patch.status = status;
+if (location) patch.current_location = location;
+if (date) patch.expected_delivery_date = date;
+
+// Only update amount_due if user actually changed it
+if (amount !== "") patch.amount_due = amount;
+
+if (geo) {
+  patch.current_stop_label = location;
+  patch.current_stop_lat = geo.lat;
+  patch.current_stop_lng = geo.lng;
+}
+
       const { error } = await supabase.from("shipments").update(patch).eq("id", updateRow.id);
       if (error) throw error;
       toast.success("Shipment updated");
