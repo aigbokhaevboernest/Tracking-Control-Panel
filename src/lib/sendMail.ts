@@ -89,7 +89,7 @@ export interface ShipmentEmailCtx {
   destination_label?: string | null;
   current_location?: string | null;
   expected_delivery_date?: string | null;
-  hold_amount?: string | null;
+  amount_due?: string | null;
 }
 
 // ---------- Template builders ----------
