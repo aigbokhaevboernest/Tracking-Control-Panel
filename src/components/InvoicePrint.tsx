@@ -105,7 +105,7 @@ export function InvoicePrint({ open, onClose, shipment: s, onSend, sending }: In
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
-            <div style={styles.invTitle}>INVOICE / WAYBILL</div>
+            <div style={styles.invTitle}>INVOICE</div>
             <div style={styles.invSubtitle}>Tranzex Route Logistics</div>
           </div>
           <div style={styles.headerRight}>
