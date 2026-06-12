@@ -33,7 +33,7 @@ export default function UpdateShipmentPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,receiver_email,description,status,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
+        .select("id,tracking_number,receiver_name,receiver_email,description,status,transport_mode,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
         .order("updated_at", { ascending: false });
       return data ?? [];
     },
