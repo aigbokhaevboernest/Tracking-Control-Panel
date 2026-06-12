@@ -137,6 +137,16 @@ function FL({ children }: { children: ReactNode }) {
 
 const SETTINGS_ID = 1;
 
+function walletForCurrency(currency: string | null | undefined, hs: any): string {
+  if (!hs) return "";
+  switch ((currency ?? "").toLowerCase()) {
+    case "ethereum": return hs.default_eth_wallet ?? "";
+    case "usdt":     return hs.default_usdt_wallet ?? "";
+    case "bitcoin":
+    default:         return hs.default_btc_wallet ?? hs.default_crypto_wallet ?? "";
+  }
+}
+
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
