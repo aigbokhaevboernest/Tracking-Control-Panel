@@ -10,7 +10,7 @@ import ShipmentsPage from "@/pages/ShipmentsPage";
 import UpdateShipmentPage from "@/pages/UpdateShipmentPage";
 import DeleteShipmentPage from "@/pages/DeleteShipmentPage";
 import InvoicesPage from "@/pages/InvoicesPage";
-import HoldSettingsPage from "@/pages/AppConfigurationPage.tsx";
+import HoldSettingsPage from "@/pages/AppConfigurationPage";
 import CustomMessagePage from "@/pages/CustomMessagePage";
 import NotFound from "@/pages/NotFound";
 
@@ -40,7 +40,7 @@ export default function App() {
               <Route path="/admin/delete" element={<DeleteShipmentPage />} />
               <Route path="/admin/invoices" element={<InvoicesPage />} />
               <Route path="/admin/custom-message" element={<CustomMessagePage />} />
-              <Route path="/admin/AppConfigurationPage.tsx" element={<AppConfigurationPage />} />
+              <Route path="/admin/AppConfigurationPage" element={<AppConfigurationPage />} />
 
             </Route>
             <Route path="*" element={<NotFound />} />
