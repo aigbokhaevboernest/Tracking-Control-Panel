@@ -40,7 +40,7 @@ export default function App() {
               <Route path="/admin/delete" element={<DeleteShipmentPage />} />
               <Route path="/admin/invoices" element={<InvoicesPage />} />
               <Route path="/admin/custom-message" element={<CustomMessagePage />} />
-              <Route path="/admin/hold-settings" element={<HoldSettingsPage />} />
+              <Route path="/admin/AppConfigurationPage.tsx" element={<AppConfigurationPage />} />
 
             </Route>
             <Route path="*" element={<NotFound />} />
