@@ -388,6 +388,34 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
             <Section title="Basic Info" color="blue">
               <div className="space-y-1 sm:col-span-2">
+                <FL>Transport Mode</FL>
+                <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                  {TRANSPORT_MODES.map((m) => {
+                    const active = transportMode === m.value;
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => {
+                          setValue("transport_mode", m.value, { shouldDirty: true });
+                          // Clear status when switching modes so admin picks a valid one
+                          const current = getValues("status") ?? "";
+                          if (current && !statusesForMode(m.value).includes(current)) {
+                            setValue("status", "");
+                          }
+                        }}
+                        className={cn(
+                          "flex-1 py-2.5 text-sm font-semibold transition-colors",
+                          active ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                        )}
+                      >
+                        <span className="mr-1">{m.emoji}</span>{m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-1 sm:col-span-2">
                 <FL>Tracking Number</FL>
                 <FInput icon={Hash} color="blue" {...register("tracking_number")}
                   rightEl={
@@ -403,7 +431,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 <FL>Status</FL>
                 <FSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
                   <option value="">Select status</option>
-                  {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                 </FSelect>
               </div>
               <div className="flex items-center gap-2 pt-4">
@@ -411,6 +439,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 <Label className="text-xs">Show Airport Step on Public Page</Label>
               </div>
             </Section>
+
 
             <Section title="Sender's Details" color="orange">
               <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="orange" {...register("sender_name")} /></div>
