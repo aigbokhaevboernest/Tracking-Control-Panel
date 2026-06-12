@@ -182,7 +182,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     setReady(false);
     (async () => {
       const { data: hs } = await supabase
-        .from("hold_settings")
+        .from("shipments")
         .select("*")
         .eq("id", SETTINGS_ID)
         .maybeSingle();
