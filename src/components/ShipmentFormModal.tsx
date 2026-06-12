@@ -149,11 +149,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
       resolver: zodResolver(schema) as any,
-      defaultValues: { tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false } as any,
+      defaultValues: { tracking_number: generateTrackingNumber(), transport_mode: "land", crypto_currency: "Bitcoin", show_image: true, show_airport_step: false } as any,
     });
 
   const paymentMode = watch("payment_mode");
+  const transportMode = (watch("transport_mode") ?? "land") as TransportMode;
+  const cryptoCurrency = watch("crypto_currency") ?? "Bitcoin";
   const trackingNumber = watch("tracking_number");
+  const [holdSettings, setHoldSettings] = useState<any>(null);
 
   useEffect(() => {
     if (open) {
@@ -168,29 +171,39 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     if (!open) return;
     setReady(false);
     (async () => {
+      const { data: hs } = await supabase
+        .from("hold_settings")
+        .select("*")
+        .eq("id", SETTINGS_ID)
+        .maybeSingle();
+      setHoldSettings(hs ?? null);
+
       if (shipmentId) {
         const { data } = await supabase.from("shipments").select("*").eq("id", shipmentId).single();
         if (data) {
-          reset({ ...data, date_sent: data.date_sent ?? "", expected_delivery_date: data.expected_delivery_date ?? "" } as any);
+          reset({
+            ...data,
+            transport_mode: (data as any).transport_mode ?? "land",
+            crypto_currency: (data as any).crypto_currency ?? hs?.default_crypto_currency ?? "Bitcoin",
+            date_sent: data.date_sent ?? "",
+            expected_delivery_date: data.expected_delivery_date ?? "",
+          } as any);
           setImageUrl(data.package_image_url ?? null);
           setProofUrl(data.proof_of_delivery_url ?? null);
         }
       } else {
-        const { data: hs } = await supabase
-          .from("hold_settings")
-          .select("*")
-          .eq("id", SETTINGS_ID)
-          .maybeSingle();
-
         reset({
           tracking_number: generateTrackingNumber(),
+          transport_mode: "land",
+          crypto_currency: hs?.default_crypto_currency ?? "Bitcoin",
           show_image: true,
           show_airport_step: false,
+          payment_mode: hs?.default_payment_mode ?? "",
           hold_headline: hs?.default_hold_headline ?? "",
           hold_body: hs?.default_hold_body ?? "",
           hold_footer_note: hs?.default_hold_footer ?? "",
-          hold_contact_email: hs?.company_email ?? "",
-          crypto_wallet_address: hs?.default_crypto_wallet ?? "",
+          hold_contact_email: hs?.support_email ?? hs?.company_email ?? "",
+          crypto_wallet_address: walletForCurrency(hs?.default_crypto_currency ?? "Bitcoin", hs) ?? hs?.default_crypto_wallet ?? "",
           payment_instruction_note: hs?.default_payment_note ?? "",
           bank_name: hs?.default_bank_name ?? "",
           bank_account_number: hs?.default_bank_account_number ?? "",
@@ -203,6 +216,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       setReady(true);
     })();
   }, [open, shipmentId, reset]);
+
+  // When the user switches crypto currency, swap to the matching default wallet from hold settings.
+  useEffect(() => {
+    if (!ready || !holdSettings) return;
+    if (paymentMode !== "Crypto") return;
+    const w = walletForCurrency(cryptoCurrency, holdSettings);
+    if (w) setValue("crypto_wallet_address", w);
+  }, [cryptoCurrency, paymentMode, ready, holdSettings, setValue]);
 
   async function uploadFile(file: File, setter: (url: string) => void) {
     setUploading(true);
