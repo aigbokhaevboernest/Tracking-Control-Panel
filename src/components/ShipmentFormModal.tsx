@@ -22,7 +22,9 @@ const optStr = z.string().nullable().optional().or(z.literal("").transform(() =>
 
 const schema = z.object({
   tracking_number: z.string().min(3, "Required"),
+  transport_mode: z.enum(["land", "air", "sea"]).default("land"),
   status: optStr, current_location: optStr, amount_due: optStr, payment_mode: optStr,
+  crypto_currency: optStr,
   comments: optStr, origin_label: optStr, current_stop_label: optStr, destination_label: optStr,
   package_type: optStr, weight: optStr, description: optStr, date_sent: optStr,
   expected_delivery_date: optStr, show_image: z.boolean().optional(), show_airport_step: z.boolean().optional(),
