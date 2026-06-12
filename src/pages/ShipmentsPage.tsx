@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
+import { SHIPMENT_STATUSES, statusBadgeClass, transportEmoji } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
