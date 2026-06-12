@@ -189,7 +189,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     (async () => {
       // Read defaults from app_config — hold_settings no longer exists
       const { data: cfg } = await supabase
-        .from("shipments")
+        .from("app_config")
         .select("*")
         .eq("id", 1)
         .maybeSingle();
@@ -479,9 +479,9 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                   <div className="space-y-1">
                     <FL>Crypto Currency</FL>
                     <FSelect icon={Wallet} color="green" {...register("crypto_currency")}>
-                      <option value="Bitcoin">🟠 Bitcoin (BTC)</option>
-                      <option value="Ethereum">🔵 Ethereum (ETH)</option>
-                      <option value="USDT">🟢 USDT (Tether)</option>
+                      <option value="Bitcoin"> Bitcoin (BTC)</option>
+                      <option value="Ethereum"> Ethereum (ETH)</option>
+                      <option value="USDT"> USDT (Tether)</option>
                     </FSelect>
                   </div>
                   <div className="space-y-1 sm:col-span-2">
