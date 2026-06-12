@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabase";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { SHIPMENT_STATUSES, generateTrackingNumber } from "@/lib/tracking";
+import { generateTrackingNumber, statusesForMode, TRANSPORT_MODES, type TransportMode } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
