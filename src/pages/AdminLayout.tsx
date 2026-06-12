@@ -23,7 +23,7 @@ const nav = [
   { to: "/admin/delete", label: "Delete Shipment", icon: Trash2 },
   { to: "/admin/invoices", label: "Invoices", icon: FileText },
   { to: "/admin/custom-message", label: "Custom Message", icon: Mail },
-  { to: "/admin/AppConfigurationPage", label: " App Configuration", icon: Settings },
+  { to: "/admin/app-configuration", label: " App Configuration", icon: Settings },
 ];
 
 export default function AdminLayout() {
