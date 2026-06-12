@@ -340,14 +340,22 @@ export function buildStatusEmail(status: string | null | undefined, s: ShipmentE
   if (!status) return null;
   const k = status.toLowerCase().trim();
   if (k.includes("out for delivery")) return buildOutForDeliveryEmail(s);
-  if (k.includes("transit")) return buildInTransitEmail(s);
   if (k.includes("hold") || k.includes("customs")) return buildCustomsHoldEmail(s);
-  if (k.includes("pick")) return buildPickUpEmail(s);
-  if (k.includes("airport")) return buildAirportEmail(s);
   if (k.includes("delivered")) return buildDeliveredEmail(s);
   if (k.includes("failed")) return buildFailedEmail(s);
   if (k.includes("returned")) return buildReturnedEmail(s);
-  if (k.includes("origin")) return buildOriginWarehouseEmail(s);
+  if (k.includes("pick")) return buildPickUpEmail(s);
+  // Origin states (Origin Warehouse / Origin Airport / Origin Port) — checked
+  // before generic "airport" / "port" so origin always wins.
+  if (k.startsWith("origin")) return buildOriginWarehouseEmail(s);
+  // Arrival hubs (Arrived At Nearest Airport / Depot / Destination Port)
+  if (k.includes("arrived") || k.includes("airport") || k.includes("depot") || k.includes("destination port")) {
+    return buildAirportEmail(s);
+  }
+  // Movement states (In-Transit / Departed / In Flight / At Sea / Departed Port)
+  if (k.includes("transit") || k.includes("departed") || k.includes("flight") || k.includes("at sea")) {
+    return buildInTransitEmail(s);
+  }
   if (k.includes("warehouse")) return buildReturnedEmail(s);
   return {
     subject: `Shipment Update — ${s.tracking_number}`,
