@@ -189,7 +189,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     (async () => {
       // Read defaults from app_config — hold_settings no longer exists
       const { data: cfg } = await supabase
-        .from("app_config")
+        .from("shipments")
         .select("*")
         .eq("id", 1)
         .maybeSingle();
