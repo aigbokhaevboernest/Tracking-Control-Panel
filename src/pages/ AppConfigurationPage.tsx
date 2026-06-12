@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const SETTINGS_ID = 1;
-
 export default function HoldSettingsPage() {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -17,12 +15,12 @@ export default function HoldSettingsPage() {
 
   useEffect(() => {
     supabase
-      .from("shipments")
+      .from("app_config")
       .select("*")
-      .eq("id", SETTINGS_ID)
+      .eq("id", 1)
       .maybeSingle()
       .then(({ data }) => {
-        setData(data ?? { id: SETTINGS_ID });
+        setData(data ?? { id: 1 });
         setLoading(false);
       });
   }, []);
@@ -36,8 +34,8 @@ export default function HoldSettingsPage() {
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("shipments")
-        .upsert({ ...data, id: SETTINGS_ID });
+        .from("app_config")
+        .upsert({ ...data, id: 1 });
       if (error) throw error;
       toast.success("Settings saved");
     } catch (err: any) {
@@ -47,18 +45,48 @@ export default function HoldSettingsPage() {
     }
   }
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+    </div>
+  );
+
+  const paymentMode = data.default_payment_mode ?? "Crypto";
+  const cryptoCurrency = data.default_crypto_currency ?? "Bitcoin";
+
+  const currentWallet =
+    cryptoCurrency === "Ethereum" ? data.default_eth_wallet ?? ""
+    : cryptoCurrency === "USDT"   ? data.default_usdt_wallet ?? ""
+    : data.default_btc_wallet ?? "";
+
+  function setWallet(val: string) {
+    const key =
+      cryptoCurrency === "Ethereum" ? "default_eth_wallet"
+      : cryptoCurrency === "USDT"   ? "default_usdt_wallet"
+      : "default_btc_wallet";
+    set(key, val);
+  }
+
+  const cryptoColor =
+    cryptoCurrency === "Ethereum" ? "text-indigo-600"
+    : cryptoCurrency === "USDT"   ? "text-emerald-600"
+    : "text-amber-500";
+
+  const cryptoLabel =
+    cryptoCurrency === "Ethereum" ? " Ethereum (ETH)"
+    : cryptoCurrency === "USDT"   ? " USDT (Tether)"
+    : " Bitcoin (BTC)";
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Hold Settings</h2>
+      <h2 className="text-2xl font-bold">Hold & Payment Settings</h2>
       <form onSubmit={handleSave} className="space-y-4">
 
-        {/* Support Mail */}
+        {/* Support Email */}
         <Card className="p-5 space-y-3">
-          <h3 className="font-semibold">Support Mail</h3>
+          <h3 className="font-semibold">Support Contact</h3>
           <div>
-            <Label>Contact Support Email</Label>
+            <Label>Support Email</Label>
             <Input
               type="email"
               value={data.support_email ?? ""}
@@ -77,6 +105,7 @@ export default function HoldSettingsPage() {
               <Input
                 value={data.default_hold_headline ?? ""}
                 onChange={(e) => set("default_hold_headline", e.target.value)}
+                placeholder="CUSTOM HOLD NOTICE"
               />
             </div>
             <div>
@@ -84,14 +113,16 @@ export default function HoldSettingsPage() {
               <Input
                 value={data.default_hold_footer ?? ""}
                 onChange={(e) => set("default_hold_footer", e.target.value)}
+                placeholder="Kindly complete the required payment..."
               />
             </div>
             <div className="md:col-span-2">
-              <Label>Reason for Hold</Label>
+              <Label>Reason for Hold (Body)</Label>
               <Textarea
                 value={data.default_hold_body ?? ""}
                 onChange={(e) => set("default_hold_body", e.target.value)}
                 rows={4}
+                placeholder="Your package is currently being held by customs..."
               />
             </div>
           </div>
@@ -104,10 +135,10 @@ export default function HoldSettingsPage() {
           {/* Payment Mode Toggle */}
           <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
             {[
-              { value: "Crypto", label: "Crypto" },
-              { value: "Bank",   label: "Bank Transfer" },
+              { value: "Crypto", label: " Crypto" },
+              { value: "Bank",   label: " Bank Transfer" },
             ].map((m) => {
-              const active = (data.default_payment_mode ?? "Crypto") === m.value;
+              const active = paymentMode === m.value;
               return (
                 <button
                   key={m.value}
@@ -123,58 +154,78 @@ export default function HoldSettingsPage() {
             })}
           </div>
 
-          {(data.default_payment_mode ?? "Crypto") === "Crypto" && (
+          {paymentMode === "Crypto" && (
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2">
-                <Label>Crypto Currency</Label>
+                <Label>Default Crypto Currency</Label>
                 <select
-                  value={data.default_crypto_currency ?? "Bitcoin"}
+                  value={cryptoCurrency}
                   onChange={(e) => set("default_crypto_currency", e.target.value)}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
+                  className="mt-1 flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm md:text-sm"
                 >
-                  <option value="Bitcoin">Bitcoin</option>
-                  <option value="Ethereum">Ethereum</option>
-                  <option value="USDT">USDT</option>
+                  <option value="Bitcoin"> Bitcoin (BTC)</option>
+                  <option value="Ethereum"> Ethereum (ETH)</option>
+                  <option value="USDT"> USDT (Tether)</option>
                 </select>
               </div>
+
+              {/* Colour coded currency label */}
               <div className="md:col-span-2">
-                <Label>{data.default_crypto_currency ?? "Bitcoin"} Wallet Address</Label>
+                <Label>
+                  <span className={cryptoColor}>{cryptoLabel}</span> Wallet Address
+                </Label>
                 <Input
-                  value={
-                    (data.default_crypto_currency === "Ethereum"
-                      ? data.default_eth_wallet
-                      : data.default_crypto_currency === "USDT"
-                      ? data.default_usdt_wallet
-                      : data.default_btc_wallet) ?? ""
-                  }
-                  onChange={(e) => {
-                    const cur = data.default_crypto_currency ?? "Bitcoin";
-                    const key =
-                      cur === "Ethereum" ? "default_eth_wallet"
-                      : cur === "USDT"   ? "default_usdt_wallet"
-                      : "default_btc_wallet";
-                    set(key, e.target.value);
-                  }}
+                  value={currentWallet}
+                  onChange={(e) => setWallet(e.target.value)}
                   placeholder="Wallet address"
                 />
               </div>
+
+              {/* Show all three wallet fields so admin can pre-fill all */}
+              <div>
+                <Label className="text-amber-500">Bitcoin Wallet</Label>
+                <Input
+                  value={data.default_btc_wallet ?? ""}
+                  onChange={(e) => set("default_btc_wallet", e.target.value)}
+                  placeholder="BTC wallet address"
+                />
+              </div>
+              <div>
+                <Label className="text-indigo-600"> Ethereum Wallet</Label>
+                <Input
+                  value={data.default_eth_wallet ?? ""}
+                  onChange={(e) => set("default_eth_wallet", e.target.value)}
+                  placeholder="ETH wallet address"
+                />
+              </div>
               <div className="md:col-span-2">
-                <Label>Instruction Note</Label>
+                <Label className="text-emerald-600"> USDT Wallet</Label>
+                <Input
+                  value={data.default_usdt_wallet ?? ""}
+                  onChange={(e) => set("default_usdt_wallet", e.target.value)}
+                  placeholder="USDT wallet address"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label>Payment Instruction Note</Label>
                 <Textarea
                   value={data.default_payment_note ?? ""}
                   onChange={(e) => set("default_payment_note", e.target.value)}
+                  placeholder="Please send the required payment to the wallet above..."
                 />
               </div>
             </div>
           )}
 
-          {(data.default_payment_mode ?? "Crypto") === "Bank" && (
+          {paymentMode === "Bank" && (
             <div className="grid gap-3 md:grid-cols-2">
               <div>
                 <Label>Bank Name</Label>
                 <Input
                   value={data.default_bank_name ?? ""}
                   onChange={(e) => set("default_bank_name", e.target.value)}
+                  placeholder="e.g. Barclays"
                 />
               </div>
               <div>
@@ -182,6 +233,7 @@ export default function HoldSettingsPage() {
                 <Input
                   value={data.default_bank_account_number ?? ""}
                   onChange={(e) => set("default_bank_account_number", e.target.value)}
+                  placeholder="12345678"
                 />
               </div>
               <div className="md:col-span-2">
@@ -189,15 +241,16 @@ export default function HoldSettingsPage() {
                 <Input
                   value={data.default_bank_account_name ?? ""}
                   onChange={(e) => set("default_bank_account_name", e.target.value)}
+                  placeholder="Tranzex Route Logistics Ltd"
                 />
               </div>
             </div>
           )}
         </Card>
 
-
-        <Button type="submit" disabled={saving}>
-          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Settings
+        <Button type="submit" disabled={saving} className="w-full sm:w-auto">
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Save Settings
         </Button>
       </form>
     </div>
