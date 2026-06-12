@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
+import { SHIPMENT_STATUSES, statusBadgeClass, transportEmoji } from "@/lib/tracking";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
@@ -26,7 +26,7 @@ export default function ShipmentsPage() {
       let q = supabase
         .from("shipments")
         .select(
-          "id,tracking_number,receiver_name,description,status,current_location,date_sent,expected_delivery_date,amount_due",
+          "id,tracking_number,receiver_name,description,status,transport_mode,current_location,date_sent,expected_delivery_date,amount_due",
           { count: "exact" },
         )
         .order("updated_at", { ascending: false })
@@ -82,6 +82,7 @@ export default function ShipmentsPage() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Transport</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
                 <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
@@ -93,10 +94,11 @@ export default function ShipmentsPage() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <TableRowSkeleton columns={9} rows={5} />}
+              {isLoading && <TableRowSkeleton columns={10} rows={5} />}
               {!isLoading && data?.rows.map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
+                  <td className="px-4 py-6 text-center text-lg whitespace-nowrap" title={s.transport_mode ?? "land"}>{transportEmoji(s.transport_mode)}</td>
                   <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
                   <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
@@ -118,7 +120,7 @@ export default function ShipmentsPage() {
                 </tr>
               ))}
               {!isLoading && !data?.rows.length && (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments found.</td></tr>
+                <tr><td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">No shipments found.</td></tr>
               )}
             </tbody>
           </table>

@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "@/lib/supabase";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { SHIPMENT_STATUSES, generateTrackingNumber } from "@/lib/tracking";
+import { generateTrackingNumber, statusesForMode, TRANSPORT_MODES, type TransportMode } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
@@ -22,7 +22,9 @@ const optStr = z.string().nullable().optional().or(z.literal("").transform(() =>
 
 const schema = z.object({
   tracking_number: z.string().min(3, "Required"),
+  transport_mode: z.enum(["land", "air", "sea"]).default("land"),
   status: optStr, current_location: optStr, amount_due: optStr, payment_mode: optStr,
+  crypto_currency: optStr,
   comments: optStr, origin_label: optStr, current_stop_label: optStr, destination_label: optStr,
   package_type: optStr, weight: optStr, description: optStr, date_sent: optStr,
   expected_delivery_date: optStr, show_image: z.boolean().optional(), show_airport_step: z.boolean().optional(),
@@ -135,6 +137,16 @@ function FL({ children }: { children: ReactNode }) {
 
 const SETTINGS_ID = 1;
 
+function walletForCurrency(currency: string | null | undefined, hs: any): string {
+  if (!hs) return "";
+  switch ((currency ?? "").toLowerCase()) {
+    case "ethereum": return hs.default_eth_wallet ?? "";
+    case "usdt":     return hs.default_usdt_wallet ?? "";
+    case "bitcoin":
+    default:         return hs.default_btc_wallet ?? hs.default_crypto_wallet ?? "";
+  }
+}
+
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -147,11 +159,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
       resolver: zodResolver(schema) as any,
-      defaultValues: { tracking_number: generateTrackingNumber(), show_image: true, show_airport_step: false } as any,
+      defaultValues: { tracking_number: generateTrackingNumber(), transport_mode: "land", crypto_currency: "Bitcoin", show_image: true, show_airport_step: false } as any,
     });
 
   const paymentMode = watch("payment_mode");
+  const transportMode = (watch("transport_mode") ?? "land") as TransportMode;
+  const cryptoCurrency = watch("crypto_currency") ?? "Bitcoin";
   const trackingNumber = watch("tracking_number");
+  const [holdSettings, setHoldSettings] = useState<any>(null);
 
   useEffect(() => {
     if (open) {
@@ -166,29 +181,39 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     if (!open) return;
     setReady(false);
     (async () => {
+      const { data: hs } = await supabase
+        .from("hold_settings")
+        .select("*")
+        .eq("id", SETTINGS_ID)
+        .maybeSingle();
+      setHoldSettings(hs ?? null);
+
       if (shipmentId) {
         const { data } = await supabase.from("shipments").select("*").eq("id", shipmentId).single();
         if (data) {
-          reset({ ...data, date_sent: data.date_sent ?? "", expected_delivery_date: data.expected_delivery_date ?? "" } as any);
+          reset({
+            ...data,
+            transport_mode: (data as any).transport_mode ?? "land",
+            crypto_currency: (data as any).crypto_currency ?? hs?.default_crypto_currency ?? "Bitcoin",
+            date_sent: data.date_sent ?? "",
+            expected_delivery_date: data.expected_delivery_date ?? "",
+          } as any);
           setImageUrl(data.package_image_url ?? null);
           setProofUrl(data.proof_of_delivery_url ?? null);
         }
       } else {
-        const { data: hs } = await supabase
-          .from("hold_settings")
-          .select("*")
-          .eq("id", SETTINGS_ID)
-          .maybeSingle();
-
         reset({
           tracking_number: generateTrackingNumber(),
+          transport_mode: "land",
+          crypto_currency: hs?.default_crypto_currency ?? "Bitcoin",
           show_image: true,
           show_airport_step: false,
+          payment_mode: hs?.default_payment_mode ?? "",
           hold_headline: hs?.default_hold_headline ?? "",
           hold_body: hs?.default_hold_body ?? "",
           hold_footer_note: hs?.default_hold_footer ?? "",
-          hold_contact_email: hs?.company_email ?? "",
-          crypto_wallet_address: hs?.default_crypto_wallet ?? "",
+          hold_contact_email: hs?.support_email ?? hs?.company_email ?? "",
+          crypto_wallet_address: walletForCurrency(hs?.default_crypto_currency ?? "Bitcoin", hs) ?? hs?.default_crypto_wallet ?? "",
           payment_instruction_note: hs?.default_payment_note ?? "",
           bank_name: hs?.default_bank_name ?? "",
           bank_account_number: hs?.default_bank_account_number ?? "",
@@ -201,6 +226,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       setReady(true);
     })();
   }, [open, shipmentId, reset]);
+
+  // When the user switches crypto currency, swap to the matching default wallet from hold settings.
+  useEffect(() => {
+    if (!ready || !holdSettings) return;
+    if (paymentMode !== "Crypto") return;
+    const w = walletForCurrency(cryptoCurrency, holdSettings);
+    if (w) setValue("crypto_wallet_address", w);
+  }, [cryptoCurrency, paymentMode, ready, holdSettings, setValue]);
 
   async function uploadFile(file: File, setter: (url: string) => void) {
     setUploading(true);
@@ -355,6 +388,34 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
             <Section title="Basic Info" color="blue">
               <div className="space-y-1 sm:col-span-2">
+                <FL>Transport Mode</FL>
+                <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                  {TRANSPORT_MODES.map((m) => {
+                    const active = transportMode === m.value;
+                    return (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => {
+                          setValue("transport_mode", m.value, { shouldDirty: true });
+                          // Clear status when switching modes so admin picks a valid one
+                          const current = getValues("status") ?? "";
+                          if (current && !statusesForMode(m.value).includes(current)) {
+                            setValue("status", "");
+                          }
+                        }}
+                        className={cn(
+                          "flex-1 py-2.5 text-sm font-semibold transition-colors",
+                          active ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                        )}
+                      >
+                        <span className="mr-1">{m.emoji}</span>{m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-1 sm:col-span-2">
                 <FL>Tracking Number</FL>
                 <FInput icon={Hash} color="blue" {...register("tracking_number")}
                   rightEl={
@@ -370,7 +431,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 <FL>Status</FL>
                 <FSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
                   <option value="">Select status</option>
-                  {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                 </FSelect>
               </div>
               <div className="flex items-center gap-2 pt-4">
@@ -378,6 +439,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 <Label className="text-xs">Show Airport Step on Public Page</Label>
               </div>
             </Section>
+
 
             <Section title="Sender's Details" color="orange">
               <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="orange" {...register("sender_name")} /></div>
@@ -441,7 +503,15 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 </FSelect>
               </div>
               {paymentMode === "Crypto" && <>
-                <div className="space-y-1 sm:col-span-2"><FL>Wallet Address</FL><FInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
+                <div className="space-y-1">
+                  <FL>Crypto Currency</FL>
+                  <FSelect icon={Wallet} color="green" {...register("crypto_currency")}>
+                    <option value="Bitcoin">Bitcoin</option>
+                    <option value="Ethereum">Ethereum</option>
+                    <option value="USDT">USDT</option>
+                  </FSelect>
+                </div>
+                <div className="space-y-1 sm:col-span-2"><FL>{cryptoCurrency} Wallet Address</FL><FInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
                 <div className="space-y-1 sm:col-span-2"><FL>Payment Note</FL><FTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
               </>}
               {paymentMode === "Bank" && <>

@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
+import { statusBadgeClass, statusesForMode } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
@@ -33,7 +33,7 @@ export default function UpdateShipmentPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,receiver_email,description,status,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
+        .select("id,tracking_number,receiver_name,receiver_email,description,status,transport_mode,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
         .order("updated_at", { ascending: false });
       return data ?? [];
     },
@@ -231,7 +231,7 @@ if (geo) {
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px" }}
                   >
                     <option value="">Select status</option>
-                    {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {statusesForMode(updateRow?.transport_mode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
