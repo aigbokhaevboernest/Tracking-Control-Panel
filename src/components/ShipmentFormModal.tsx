@@ -503,7 +503,15 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 </FSelect>
               </div>
               {paymentMode === "Crypto" && <>
-                <div className="space-y-1 sm:col-span-2"><FL>Wallet Address</FL><FInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
+                <div className="space-y-1">
+                  <FL>Crypto Currency</FL>
+                  <FSelect icon={Wallet} color="green" {...register("crypto_currency")}>
+                    <option value="Bitcoin">Bitcoin</option>
+                    <option value="Ethereum">Ethereum</option>
+                    <option value="USDT">USDT</option>
+                  </FSelect>
+                </div>
+                <div className="space-y-1 sm:col-span-2"><FL>{cryptoCurrency} Wallet Address</FL><FInput icon={Wallet} color="green" {...register("crypto_wallet_address")} /></div>
                 <div className="space-y-1 sm:col-span-2"><FL>Payment Note</FL><FTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
               </>}
               {paymentMode === "Bank" && <>
