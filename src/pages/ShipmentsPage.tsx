@@ -82,7 +82,7 @@ export default function ShipmentsPage() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
-                <th className="px-4 py-6 text-left whitespace-nowrap">Transport</th>
+                <th className="px-4 py-6 text-center whitespace-nowrap">Mode</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
                 <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
@@ -98,16 +98,26 @@ export default function ShipmentsPage() {
               {!isLoading && data?.rows.map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
-                  <td className="px-4 py-6 text-center text-lg whitespace-nowrap" title={s.transport_mode ?? "land"}>{transportEmoji(s.transport_mode)}</td>
+                  <td className="px-4 py-6 text-center text-xl whitespace-nowrap">
+                    <span title={s.transport_mode ?? "land"}>
+                      {transportEmoji(s.transport_mode ?? "land")}
+                    </span>
+                  </td>
                   <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
                   <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
                   <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
-<td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}
+                  </td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}
+                  </td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.amount_due != null ? s.amount_due : "—"}
+                  </td>
                   <td className="px-4 py-6">
                     <Button
                       size="sm"
@@ -120,13 +130,19 @@ export default function ShipmentsPage() {
                 </tr>
               ))}
               {!isLoading && !data?.rows.length && (
-                <tr><td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">No shipments found.</td></tr>
+                <tr>
+                  <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
+                    No shipments found.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between border-t bg-gray-50 px-4 py-3">
-          <div className="text-xs text-muted-foreground">{data?.count ?? 0} total · Page {page + 1} of {totalPages}</div>
+          <div className="text-xs text-muted-foreground">
+            {data?.count ?? 0} total · Page {page + 1} of {totalPages}
+          </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Prev</Button>
             <Button size="sm" variant="outline" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>Next</Button>
