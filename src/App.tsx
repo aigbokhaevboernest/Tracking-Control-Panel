@@ -10,7 +10,7 @@ import ShipmentsPage from "@/pages/ShipmentsPage";
 import UpdateShipmentPage from "@/pages/UpdateShipmentPage";
 import DeleteShipmentPage from "@/pages/DeleteShipmentPage";
 import InvoicesPage from "@/pages/InvoicesPage";
-import HoldSettingsPage from "@/pages/HoldSettingsPage";
+import HoldSettingsPage from "@/pages/AppConfigurationPage.tsx";
 import CustomMessagePage from "@/pages/CustomMessagePage";
 import NotFound from "@/pages/NotFound";
 
