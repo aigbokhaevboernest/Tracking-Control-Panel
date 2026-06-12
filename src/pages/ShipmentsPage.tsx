@@ -26,7 +26,7 @@ export default function ShipmentsPage() {
       let q = supabase
         .from("shipments")
         .select(
-          "id,tracking_number,receiver_name,description,status,current_location,date_sent,expected_delivery_date,amount_due",
+          "id,tracking_number,receiver_name,description,status,transport_mode,current_location,date_sent,expected_delivery_date,amount_due",
           { count: "exact" },
         )
         .order("updated_at", { ascending: false })
