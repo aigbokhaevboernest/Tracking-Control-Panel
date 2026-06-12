@@ -10,14 +10,12 @@ import ShipmentsPage from "@/pages/ShipmentsPage";
 import UpdateShipmentPage from "@/pages/UpdateShipmentPage";
 import DeleteShipmentPage from "@/pages/DeleteShipmentPage";
 import InvoicesPage from "@/pages/InvoicesPage";
-import HoldSettingsPage from "@/pages/AppConfigurationPage";
+import AppConfigurationPage from "@/pages/AppConfigurationPage";
 import CustomMessagePage from "@/pages/CustomMessagePage";
 import NotFound from "@/pages/NotFound";
-
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
 });
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -40,8 +38,7 @@ export default function App() {
               <Route path="/admin/delete" element={<DeleteShipmentPage />} />
               <Route path="/admin/invoices" element={<InvoicesPage />} />
               <Route path="/admin/custom-message" element={<CustomMessagePage />} />
-              <Route path="/admin/AppConfigurationPage" element={<AppConfigurationPage />} />
-
+              <Route path="/admin/app-configuration" element={<AppConfigurationPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
