@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { SHIPMENT_STATUSES, statusBadgeClass } from "@/lib/tracking";
+import { statusBadgeClass, statusesForMode } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
