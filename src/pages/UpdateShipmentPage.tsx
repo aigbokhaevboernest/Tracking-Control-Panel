@@ -130,7 +130,13 @@ export default function UpdateShipmentPage() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <TableRowSkeleton columns={9} rows={5} />}
+{isLoading && (
+  <TableRowSkeleton
+    columns={9}
+    rows={5}
+    colTypes={["mono", "text", "text", "badge", "text", "text", "text", "text", "actions"]}
+  />
+)}
               {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
