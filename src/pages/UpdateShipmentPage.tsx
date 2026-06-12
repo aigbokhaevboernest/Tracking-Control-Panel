@@ -231,7 +231,7 @@ if (geo) {
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px" }}
                   >
                     <option value="">Select status</option>
-                    {SHIPMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {statusesForMode(updateRow?.transport_mode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
