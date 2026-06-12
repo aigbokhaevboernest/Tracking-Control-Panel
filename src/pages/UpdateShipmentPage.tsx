@@ -63,22 +63,17 @@ export default function UpdateShipmentPage() {
         ...((updateRow.history as any[]) ?? []),
         { status, location, date, comments },
       ];
-      const patch: any = {
-  history: newHist,
-};
 
-if (status) patch.status = status;
-if (location) patch.current_location = location;
-if (date) patch.expected_delivery_date = date;
-
-// Only update amount_due if user actually changed it
-if (amount !== "") patch.amount_due = amount;
-
-if (geo) {
-  patch.current_stop_label = location;
-  patch.current_stop_lat = geo.lat;
-  patch.current_stop_lng = geo.lng;
-}
+      const patch: any = { history: newHist };
+      if (status)   patch.status = status;
+      if (location) patch.current_location = location;
+      if (date)     patch.expected_delivery_date = date;
+      if (amount !== "") patch.amount_due = amount;
+      if (geo) {
+        patch.current_stop_label = location;
+        patch.current_stop_lat   = geo.lat;
+        patch.current_stop_lng   = geo.lng;
+      }
 
       const { error } = await supabase.from("shipments").update(patch).eq("id", updateRow.id);
       if (error) throw error;
@@ -91,7 +86,6 @@ if (geo) {
           current_location: location,
           destination_label: updateRow.destination_label,
           expected_delivery_date: date || updateRow.expected_delivery_date,
-          
         });
         if (tpl) {
           const res = await sendMail({
@@ -146,9 +140,15 @@ if (geo) {
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
                   <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}</td>
-                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.date_sent ? format(new Date(s.date_sent), "PP") : "—"}
+                  </td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.expected_delivery_date ? format(new Date(s.expected_delivery_date), "PP") : "—"}
+                  </td>
+                  <td className="px-4 py-6 whitespace-nowrap">
+                    {s.amount_due != null ? s.amount_due : "—"}
+                  </td>
                   <td className="px-4 py-6">
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -170,7 +170,11 @@ if (geo) {
                 </tr>
               ))}
               {!isLoading && !data?.length && (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments.</td></tr>
+                <tr>
+                  <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                    No shipments.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -184,29 +188,19 @@ if (geo) {
             onClick={() => setUpdateRow(null)}
           />
           <div style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 9999,
-            width: "calc(100vw - 32px)",
-            maxWidth: 520,
-            borderRadius: 14,
-            overflow: "hidden",
+            position: "fixed", top: "50%", left: "50%",
+            transform: "translate(-50%, -50%)", zIndex: 9999,
+            width: "calc(100vw - 32px)", maxWidth: 520,
+            borderRadius: 14, overflow: "hidden",
             boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
-            background: "#fff",
-            maxHeight: "90vh",
-            display: "flex",
-            flexDirection: "column",
+            background: "#fff", maxHeight: "90vh",
+            display: "flex", flexDirection: "column",
           }}>
             <div style={{
               flexShrink: 0,
               background: "linear-gradient(90deg,#7c3aed,#6d28d9)",
-              padding: "16px 20px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              color: "#fff",
+              padding: "16px 20px", display: "flex",
+              alignItems: "center", justifyContent: "space-between", color: "#fff",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 15 }}>
                 <MapPin size={18} />
@@ -231,7 +225,9 @@ if (geo) {
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px" }}
                   >
                     <option value="">Select status</option>
-                    {statusesForMode(updateRow?.transport_mode).map((s: string) => <option key={s} value={s}>{s}</option>)}
+                    {statusesForMode(updateRow?.transport_mode ?? "land").map((s: string) =>
+                      <option key={s} value={s}>{s}</option>
+                    )}
                   </select>
                 </div>
                 <div>
@@ -252,12 +248,11 @@ if (geo) {
                   />
                 </div>
                 <div>
-                  <Label>Estimated Delivery Date (YYYY-MM-DD)</Label>
+                  <Label>Estimated Delivery Date</Label>
                   <input
-                    type="text"
+                    type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    placeholder="YYYY-MM-DD"
                     style={{ fontSize: 16, marginTop: 4, width: "100%", height: 44, borderRadius: 8, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", padding: "0 12px", boxSizing: "border-box" }}
                   />
                 </div>
@@ -274,20 +269,12 @@ if (geo) {
                   type="submit"
                   disabled={submitting}
                   style={{
-                    width: "100%",
-                    padding: "13px 0",
+                    width: "100%", padding: "13px 0",
                     background: submitting ? "#7c3aed99" : "#7c3aed",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 10,
-                    fontWeight: 700,
-                    fontSize: 16,
+                    color: "#fff", border: "none", borderRadius: 10,
+                    fontWeight: 700, fontSize: 16,
                     cursor: submitting ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    marginTop: 4,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4,
                   }}
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
@@ -300,8 +287,12 @@ if (geo) {
         document.body
       )}
 
-      <ShipmentFormModal open={editOpen} onOpenChange={setEditOpen} shipmentId={editId} onSaved={() => refetch()} />
-
+      <ShipmentFormModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        shipmentId={editId}
+        onSaved={() => refetch()}
+      />
       <ConfirmNotifyModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
