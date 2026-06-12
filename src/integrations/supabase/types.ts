@@ -23,12 +23,18 @@ export type Database = {
           default_bank_account_name: string | null
           default_bank_account_number: string | null
           default_bank_name: string | null
+          default_btc_wallet: string | null
+          default_crypto_currency: string | null
           default_crypto_wallet: string | null
+          default_eth_wallet: string | null
           default_hold_body: string | null
           default_hold_footer: string | null
           default_hold_headline: string | null
+          default_payment_mode: string | null
           default_payment_note: string | null
+          default_usdt_wallet: string | null
           id: number
+          support_email: string | null
           updated_at: string
         }
         Insert: {
@@ -39,12 +45,18 @@ export type Database = {
           default_bank_account_name?: string | null
           default_bank_account_number?: string | null
           default_bank_name?: string | null
+          default_btc_wallet?: string | null
+          default_crypto_currency?: string | null
           default_crypto_wallet?: string | null
+          default_eth_wallet?: string | null
           default_hold_body?: string | null
           default_hold_footer?: string | null
           default_hold_headline?: string | null
+          default_payment_mode?: string | null
           default_payment_note?: string | null
+          default_usdt_wallet?: string | null
           id?: number
+          support_email?: string | null
           updated_at?: string
         }
         Update: {
@@ -55,12 +67,18 @@ export type Database = {
           default_bank_account_name?: string | null
           default_bank_account_number?: string | null
           default_bank_name?: string | null
+          default_btc_wallet?: string | null
+          default_crypto_currency?: string | null
           default_crypto_wallet?: string | null
+          default_eth_wallet?: string | null
           default_hold_body?: string | null
           default_hold_footer?: string | null
           default_hold_headline?: string | null
+          default_payment_mode?: string | null
           default_payment_note?: string | null
+          default_usdt_wallet?: string | null
           id?: number
+          support_email?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -74,6 +92,7 @@ export type Database = {
           bank_name: string | null
           comments: string | null
           created_at: string
+          crypto_currency: string | null
           crypto_wallet_address: string | null
           current_location: string | null
           current_stop_label: string | null
@@ -114,6 +133,7 @@ export type Database = {
           show_image: boolean | null
           status: string | null
           tracking_number: string
+          transport_mode: string
           updated_at: string
           weight: string | null
         }
@@ -125,6 +145,7 @@ export type Database = {
           bank_name?: string | null
           comments?: string | null
           created_at?: string
+          crypto_currency?: string | null
           crypto_wallet_address?: string | null
           current_location?: string | null
           current_stop_label?: string | null
@@ -165,6 +186,7 @@ export type Database = {
           show_image?: boolean | null
           status?: string | null
           tracking_number: string
+          transport_mode?: string
           updated_at?: string
           weight?: string | null
         }
@@ -176,6 +198,7 @@ export type Database = {
           bank_name?: string | null
           comments?: string | null
           created_at?: string
+          crypto_currency?: string | null
           crypto_wallet_address?: string | null
           current_location?: string | null
           current_stop_label?: string | null
@@ -216,6 +239,7 @@ export type Database = {
           show_image?: boolean | null
           status?: string | null
           tracking_number?: string
+          transport_mode?: string
           updated_at?: string
           weight?: string | null
         }
