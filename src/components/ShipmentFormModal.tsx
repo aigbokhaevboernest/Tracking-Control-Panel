@@ -161,12 +161,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     useForm<FormValues>({
       resolver: zodResolver(schema) as any,
       defaultValues: {
-  tracking_number: generateTrackingNumber(),
-  transport_mode: "land",
-  crypto_currency: "Bitcoin",
-  show_image: true,
-} as any,
-
+        tracking_number: generateTrackingNumber(),
+        transport_mode: "land",
+        crypto_currency: "Bitcoin",
+        show_image: true,
+      } as any,
+    });
 
   const paymentMode = watch("payment_mode");
   const transportMode = (watch("transport_mode") ?? "land") as TransportMode;
@@ -186,7 +186,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     if (!open) return;
     setReady(false);
     (async () => {
-      // Read defaults from app_config — hold_settings no longer exists
       const { data: cfg } = await supabase
         .from("app_config")
         .select("*")
@@ -213,7 +212,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           transport_mode: "land",
           crypto_currency: cfg?.default_crypto_currency ?? "Bitcoin",
           show_image: true,
-          payment_mode: cfg?.default_payment_mode ?? "Crypto",
           payment_mode: cfg?.default_payment_mode ?? "Crypto",
           hold_headline: cfg?.default_hold_headline ?? "",
           hold_body: cfg?.default_hold_body ?? "",
@@ -400,14 +398,13 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                     } />
                   {errors.tracking_number && <p className="text-xs text-red-500">{errors.tracking_number.message}</p>}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 sm:col-span-2">
                   <FL>Status</FL>
                   <FSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
                     <option value="">Select status</option>
                     {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </FSelect>
                 </div>
-                
               </Section>
 
               <Section title="Sender's Details" color="orange">
