@@ -27,7 +27,7 @@ const schema = z.object({
   crypto_currency: optStr,
   comments: optStr, origin_label: optStr, current_stop_label: optStr, destination_label: optStr,
   package_type: optStr, weight: optStr, description: optStr, date_sent: optStr,
-  expected_delivery_date: optStr, show_image: z.boolean().optional(), show_airport_step: z.boolean().optional(),
+  expected_delivery_date: optStr, show_image: z.boolean().optional(),
   sender_name: optStr, sender_phone: optStr, sender_email: optStr, sender_address: optStr, sender_country: optStr,
   receiver_name: optStr, receiver_phone: optStr, receiver_email: optStr, receiver_address: optStr, receiver_country: optStr,
   hold_headline: optStr, hold_body: optStr, hold_footer_note: optStr, hold_amount: optStr,
@@ -161,13 +161,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     useForm<FormValues>({
       resolver: zodResolver(schema) as any,
       defaultValues: {
-        tracking_number: generateTrackingNumber(),
-        transport_mode: "land",
-        crypto_currency: "Bitcoin",
-        show_image: true,
-        show_airport_step: false,
-      } as any,
-    });
+  tracking_number: generateTrackingNumber(),
+  transport_mode: "land",
+  crypto_currency: "Bitcoin",
+  show_image: true,
+} as any,
+
 
   const paymentMode = watch("payment_mode");
   const transportMode = (watch("transport_mode") ?? "land") as TransportMode;
@@ -214,7 +213,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           transport_mode: "land",
           crypto_currency: cfg?.default_crypto_currency ?? "Bitcoin",
           show_image: true,
-          show_airport_step: false,
+          payment_mode: cfg?.default_payment_mode ?? "Crypto",
           payment_mode: cfg?.default_payment_mode ?? "Crypto",
           hold_headline: cfg?.default_hold_headline ?? "",
           hold_body: cfg?.default_hold_body ?? "",
@@ -408,10 +407,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                     {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </FSelect>
                 </div>
-                <div className="flex items-center gap-2 pt-4">
-                  <Switch checked={!!watch("show_airport_step")} onCheckedChange={(v) => setValue("show_airport_step", v)} />
-                  <Label className="text-xs">Show Airport Step on Public Page</Label>
-                </div>
+                
               </Section>
 
               <Section title="Sender's Details" color="orange">
