@@ -82,9 +82,9 @@ export default function ShipmentsPage() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
-                <th className="px-4 py-6 text-center whitespace-nowrap">Mode</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
+                <th className="px-4 py-6 text-center whitespace-nowrap">Mode</th>
                 <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
