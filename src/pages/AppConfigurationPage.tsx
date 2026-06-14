@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { FullScreenSpinner } from "@/components/Spinner";
 
 export default function AppConfigurationPage() {
   const [data, setData] = useState<any>({});
@@ -45,11 +46,7 @@ export default function AppConfigurationPage() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-    </div>
-  );
+  if (loading) return <FullScreenSpinner />;
 
   const paymentMode = data.default_payment_mode ?? "Crypto";
   const cryptoCurrency = data.default_crypto_currency ?? "Bitcoin";
