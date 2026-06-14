@@ -76,7 +76,7 @@ function badge(text: string, bg: string, color: string) {
 }
 
 function trackBtn(url: string, bg: string, label = "TRACK YOUR SHIPMENT") {
-  return `<a href="${url}" style="display:inline-block; background:${bg}; color:#ffffff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px; margin-top:12px;">${label}</a>`;
+  return `<div style="text-align:center; margin-top:14px;"><a href="${url}" style="display:inline-block; background:${bg}; color:#ffffff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">${label}</a></div>`;
 }
 
 function statusBadge(status: string | null | undefined) {
@@ -130,6 +130,7 @@ function barcodeHtml(trackingNumber: string) {
 
 export interface ShipmentEmailCtx {
   tracking_number: string;
+  transport_mode?: string | null;
   sender_name?: string | null;
   sender_phone?: string | null;
   sender_email?: string | null;
@@ -146,7 +147,10 @@ export interface ShipmentEmailCtx {
   destination_label?: string | null;
   current_location?: string | null;
   expected_delivery_date?: string | null;
-  amount_due?: string | null;
+  amount_due?: string | number | null;
+  hold_headline?: string | null;
+  hold_body?: string | null;
+  hold_footer_note?: string | null;
 }
 
 // ---------- Template builders ----------
