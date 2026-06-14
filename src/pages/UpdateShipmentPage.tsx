@@ -88,12 +88,14 @@ export default function UpdateShipmentPage() {
 
       if (sendEmailFlag && updateRow.receiver_email) {
         const tpl = buildStatusEmail(status, {
-          tracking_number: updateRow.tracking_number,
-          receiver_name: updateRow.receiver_name,
-          current_location: location,
-          destination_label: updateRow.destination_label,
-          expected_delivery_date: date || updateRow.expected_delivery_date,
-        });
+  tracking_number: updateRow.tracking_number,
+  receiver_name: updateRow.receiver_name,
+  current_location: location,
+  destination_label: updateRow.destination_label,
+  expected_delivery_date: date || updateRow.expected_delivery_date,
+  amount_due: amount || updateRow.amount_due,
+});
+
         if (tpl) {
           const res = await sendMail({
             email: updateRow.receiver_email,
