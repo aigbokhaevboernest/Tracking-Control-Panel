@@ -16,6 +16,13 @@ function safeFormat(value: any, pattern: string): string {
   try { return format(d, pattern); } catch { return "—"; }
 }
 
+function transportLabel(mode: string | null | undefined) {
+  if (mode === "air") return "✈️ Air";
+  if (mode === "sea") return "🚢 Sea";
+  if (mode === "road") return "🚛 Road";
+  return "—";
+}
+
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -44,7 +51,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,description,status,current_location,date_sent,expected_delivery_date,amount_due")
+        .select("id,tracking_number,receiver_name,description,status,transport_mode,current_location,date_sent,expected_delivery_date,amount_due")
         .order("created_at", { ascending: false })
         .limit(8);
       return data ?? [];
@@ -123,6 +130,7 @@ export default function DashboardPage() {
                 <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Mode</th>
                 <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
@@ -131,24 +139,30 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {recentLoading && <TableRowSkeleton columns={8} rows={5} />}
+              {recentLoading && (
+                <TableRowSkeleton
+                  columns={9}
+                  rows={5}
+                  colTypes={["mono", "text", "text", "text", "badge", "text", "text", "text", "text"]}
+                />
+              )}
               {!recentLoading && (recent ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
                   <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{transportLabel(s.transport_mode)}</td>
                   <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
                   <td className="px-4 py-6 break-words max-w-[150px]">{s.current_location ?? "—"}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.date_sent, "PP")}</td>
                   <td className="px-4 py-6 whitespace-nowrap">{safeFormat(s.expected_delivery_date, "PP")}</td>
-<td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
-
+                  <td className="px-4 py-6 whitespace-nowrap">{s.amount_due != null ? s.amount_due : "—"}</td>
                 </tr>
               ))}
               {!recentLoading && !recent?.length && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">No shipments yet.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">No shipments yet.</td></tr>
               )}
             </tbody>
           </table>
