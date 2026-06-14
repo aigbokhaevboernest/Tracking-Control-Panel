@@ -164,8 +164,12 @@ ${table(
   </tr>` +
   row("Sender's Full Name", v(s.sender_name)) +
   row("Sender's Country", v(s.sender_country)) +
+  `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
   row("Receiver's Full Name", v(s.receiver_name)) +
   row("Receiver's Country", v(s.receiver_country)) +
+  row("Receiver's Address", v(s.receiver_address)) +
+  row("Receiver's Phone Number", v(s.receiver_phone)) +
+  `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
   row("Package Type", v(s.package_type)) +
   row("Weight", v(s.weight)) +
   row("Origin", v(s.origin_label)) +
@@ -176,6 +180,7 @@ ${trackBtn(trackUrl(s.tracking_number), "#7C3AED")}
 ${CONFIDENTIALITY}`;
   return { subject: `Shipment Registration Confirmed — ${s.tracking_number}`, message: msg };
 }
+
 
 export function buildOriginWarehouseEmail(s: ShipmentEmailCtx) {
   const msg = `
