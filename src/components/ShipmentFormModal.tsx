@@ -184,51 +184,66 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
   useEffect(() => {
     if (!open) return;
-    setReady(false);
-    (async () => {
-      const { data: cfg } = await supabase
+
+    // For NEW shipments, render the form instantly with defaults — no spinner.
+    if (!shipmentId) {
+      reset({
+        tracking_number: generateTrackingNumber(),
+        transport_mode: "land",
+        crypto_currency: "Bitcoin",
+        show_image: true,
+      } as any);
+      setImageUrl(null);
+      setProofUrl(null);
+      setReady(true);
+
+      // Fetch defaults in the background and merge them in once they arrive.
+      supabase
         .from("hold_settings")
         .select("*")
         .eq("id", 1)
-        .maybeSingle();
-      setAppConfig(cfg ?? null);
+        .maybeSingle()
+        .then(({ data: cfg }) => {
+          if (!cfg) return;
+          setAppConfig(cfg);
+          const currency = cfg.default_crypto_currency ?? "Bitcoin";
+          setValue("crypto_currency", currency);
+          setValue("payment_mode", cfg.default_payment_mode ?? "Crypto");
+          setValue("hold_headline", cfg.default_hold_headline ?? "");
+          setValue("hold_body", cfg.default_hold_body ?? "");
+          setValue("hold_footer_note", cfg.default_hold_footer ?? "");
+          setValue("hold_contact_email", cfg.support_email ?? "");
+          setValue("crypto_wallet_address", walletForCurrency(currency, cfg));
+          setValue("payment_instruction_note", cfg.default_payment_note ?? "");
+          setValue("bank_name", cfg.default_bank_name ?? "");
+          setValue("bank_account_number", cfg.default_bank_account_number ?? "");
+          setValue("bank_account_name", cfg.default_bank_account_name ?? "");
+        });
+      return;
+    }
 
-      if (shipmentId) {
-        const { data } = await supabase.from("shipments").select("*").eq("id", shipmentId).single();
-        if (data) {
-          reset({
-            ...data,
-            transport_mode: (data as any).transport_mode ?? "land",
-            crypto_currency: (data as any).crypto_currency ?? cfg?.default_crypto_currency ?? "Bitcoin",
-            date_sent: data.date_sent ?? "",
-            expected_delivery_date: data.expected_delivery_date ?? "",
-          } as any);
-          setImageUrl(data.package_image_url ?? null);
-          setProofUrl(data.proof_of_delivery_url ?? null);
-        }
-      } else {
+    // EDIT: show centered spinner while we fetch the shipment.
+    setReady(false);
+    (async () => {
+      const [{ data: cfg }, { data }] = await Promise.all([
+        supabase.from("hold_settings").select("*").eq("id", 1).maybeSingle(),
+        supabase.from("shipments").select("*").eq("id", shipmentId).single(),
+      ]);
+      setAppConfig(cfg ?? null);
+      if (data) {
         reset({
-          tracking_number: generateTrackingNumber(),
-          transport_mode: "land",
-          crypto_currency: cfg?.default_crypto_currency ?? "Bitcoin",
-          show_image: true,
-          payment_mode: cfg?.default_payment_mode ?? "Crypto",
-          hold_headline: cfg?.default_hold_headline ?? "",
-          hold_body: cfg?.default_hold_body ?? "",
-          hold_footer_note: cfg?.default_hold_footer ?? "",
-          hold_contact_email: cfg?.support_email ?? "",
-          crypto_wallet_address: walletForCurrency(cfg?.default_crypto_currency ?? "Bitcoin", cfg),
-          payment_instruction_note: cfg?.default_payment_note ?? "",
-          bank_name: cfg?.default_bank_name ?? "",
-          bank_account_number: cfg?.default_bank_account_number ?? "",
-          bank_account_name: cfg?.default_bank_account_name ?? "",
+          ...data,
+          transport_mode: (data as any).transport_mode ?? "land",
+          crypto_currency: (data as any).crypto_currency ?? cfg?.default_crypto_currency ?? "Bitcoin",
+          date_sent: data.date_sent ?? "",
+          expected_delivery_date: data.expected_delivery_date ?? "",
         } as any);
-        setImageUrl(null);
-        setProofUrl(null);
+        setImageUrl(data.package_image_url ?? null);
+        setProofUrl(data.proof_of_delivery_url ?? null);
       }
       setReady(true);
     })();
-  }, [open, shipmentId, reset]);
+  }, [open, shipmentId, reset, setValue]);
 
   useEffect(() => {
     if (!ready || !appConfig) return;
@@ -295,9 +310,16 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       if (sendEmailFlag && values.receiver_email) {
         const ctx = {
           tracking_number: values.tracking_number,
+          transport_mode: values.transport_mode,
           sender_name: values.sender_name,
+          sender_phone: values.sender_phone,
+          sender_email: values.sender_email,
+          sender_address: values.sender_address,
           sender_country: values.sender_country,
           receiver_name: values.receiver_name,
+          receiver_phone: values.receiver_phone,
+          receiver_email: values.receiver_email,
+          receiver_address: values.receiver_address,
           receiver_country: values.receiver_country,
           package_type: values.package_type,
           weight: values.weight,
@@ -305,7 +327,10 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           destination_label: values.destination_label,
           current_location: values.current_location,
           expected_delivery_date: values.expected_delivery_date,
-          hold_amount: values.hold_amount,
+          amount_due: values.amount_due,
+          hold_headline: values.hold_headline,
+          hold_body: values.hold_body,
+          hold_footer_note: values.hold_footer_note,
         };
         const tpl = shipmentId
           ? buildStatusEmail(values.status ?? null, ctx) ?? buildCreatedEmail(ctx)
@@ -526,8 +551,8 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
 
             </form>
           ) : (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            <div className="flex h-full min-h-[400px] w-full items-center justify-center">
+              <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
             </div>
           )}
         </div>
