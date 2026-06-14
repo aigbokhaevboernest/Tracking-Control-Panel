@@ -14,9 +14,9 @@ import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { format } from "date-fns";
 
 function transportLabel(mode: string | null | undefined) {
-  if (mode === "air") return "✈️ Air";
-  if (mode === "sea") return "🚢 Sea";
-  if (mode === "land") return "🚛 Land";
+  if (mode === "air") return "✈️";
+  if (mode === "sea") return "🚢";
+  if (mode === "land") return "🚛";
   return "—";
 }
 
