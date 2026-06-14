@@ -159,9 +159,12 @@ export function buildCreatedEmail(s: ShipmentEmailCtx) {
 </p>
 ${table(
   `<tr>
-    <td style="padding:8px 0; width:50%; color:#111827; font-size:15px; font-weight:700;">Tracking ID</td>
-    <td style="padding:8px 0; font-size:15px; color:#7C3AED; font-weight:700;">${v(s.tracking_number)}</td>
-  </tr>` +
+    <td colspan="2" style="padding:12px 0; text-align:center;">
+      <div style="font-size:11px; color:#6B7280; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">Tracking ID</div>
+      <div style="font-size:22px; color:#DC2626; font-weight:800; letter-spacing:1px;">${v(s.tracking_number)}</div>
+    </td>
+  </tr>`
+ +
   row("Sender's Full Name", v(s.sender_name)) +
   row("Sender's Country", v(s.sender_country)) +
   `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
