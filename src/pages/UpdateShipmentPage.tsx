@@ -15,6 +15,13 @@ import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { sendMail, buildStatusEmail } from "@/lib/sendMail";
 import { format } from "date-fns";
 
+function transportLabel(mode: string | null | undefined) {
+  if (mode === "air") return "✈️ Air";
+  if (mode === "sea") return "🚢 Sea";
+  if (mode === "road") return "🚛 Road";
+  return "—";
+}
+
 export default function UpdateShipmentPage() {
   const [updateRow, setUpdateRow] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -121,6 +128,7 @@ export default function UpdateShipmentPage() {
                 <th className="px-4 py-6 text-left whitespace-nowrap">Tracking #</th>
                 <th className="px-4 py-6 text-left">Receiver</th>
                 <th className="px-4 py-6 text-left">Parcel</th>
+                <th className="px-4 py-6 text-left whitespace-nowrap">Mode</th>
                 <th className="px-4 py-6 text-left min-w-[130px] whitespace-nowrap">Status</th>
                 <th className="px-4 py-6 text-left">Current Location</th>
                 <th className="px-4 py-6 text-left whitespace-nowrap">Date Sent</th>
@@ -130,18 +138,19 @@ export default function UpdateShipmentPage() {
               </tr>
             </thead>
             <tbody>
-{isLoading && (
-  <TableRowSkeleton
-    columns={9}
-    rows={5}
-    colTypes={["mono", "text", "text", "badge", "text", "text", "text", "text", "actions"]}
-  />
-)}
+              {isLoading && (
+                <TableRowSkeleton
+                  columns={10}
+                  rows={5}
+                  colTypes={["mono", "text", "text", "text", "badge", "text", "text", "text", "text", "actions"]}
+                />
+              )}
               {!isLoading && (data ?? []).map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
                   <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
                   <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
+                  <td className="px-4 py-6 whitespace-nowrap">{transportLabel(s.transport_mode)}</td>
                   <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
@@ -177,7 +186,7 @@ export default function UpdateShipmentPage() {
               ))}
               {!isLoading && !data?.length && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
                     No shipments.
                   </td>
                 </tr>
