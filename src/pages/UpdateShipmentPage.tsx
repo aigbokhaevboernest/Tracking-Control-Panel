@@ -40,7 +40,7 @@ export default function UpdateShipmentPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("id,tracking_number,receiver_name,receiver_email,description,status,transport_mode,current_location,history,amount_due,date_sent,expected_delivery_date,destination_label")
+        .select("*")
         .order("updated_at", { ascending: false });
       return data ?? [];
     },
@@ -66,9 +66,11 @@ export default function UpdateShipmentPage() {
     setSubmitting(true);
     try {
       const geo = location ? await geocode(location) : null;
+      const prev = (updateRow.history as any[]) ?? [];
+      // Most recent first — prepend the new entry.
       const newHist = [
-        ...((updateRow.history as any[]) ?? []),
-        { status, location, date, comments },
+        { status, location, date, comments, at: new Date().toISOString() },
+        ...prev,
       ];
 
       const patch: any = { history: newHist };
@@ -88,13 +90,25 @@ export default function UpdateShipmentPage() {
 
       if (sendEmailFlag && updateRow.receiver_email) {
         const tpl = buildStatusEmail(status, {
-  tracking_number: updateRow.tracking_number,
-  receiver_name: updateRow.receiver_name,
-  current_location: location,
-  destination_label: updateRow.destination_label,
-  expected_delivery_date: date || updateRow.expected_delivery_date,
-  amount_due: amount || updateRow.amount_due,
-});
+          tracking_number: updateRow.tracking_number,
+          transport_mode: updateRow.transport_mode,
+          sender_name: updateRow.sender_name,
+          sender_phone: updateRow.sender_phone,
+          sender_address: updateRow.sender_address,
+          sender_country: updateRow.sender_country,
+          receiver_name: updateRow.receiver_name,
+          receiver_phone: updateRow.receiver_phone,
+          receiver_address: updateRow.receiver_address,
+          receiver_country: updateRow.receiver_country,
+          current_location: location || updateRow.current_location,
+          destination_label: updateRow.destination_label,
+          origin_label: updateRow.origin_label,
+          expected_delivery_date: date || updateRow.expected_delivery_date,
+          amount_due: amount !== "" ? amount : updateRow.amount_due,
+          hold_headline: updateRow.hold_headline,
+          hold_body: updateRow.hold_body,
+          hold_footer_note: updateRow.hold_footer_note,
+        });
 
         if (tpl) {
           const res = await sendMail({
