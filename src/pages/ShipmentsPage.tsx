@@ -98,13 +98,13 @@ export default function ShipmentsPage() {
               {!isLoading && data?.rows.map((s: any) => (
                 <tr key={s.id} className="bg-gray-100 border-t border-white">
                   <td className="px-4 py-6 font-mono text-xs whitespace-nowrap">{s.tracking_number}</td>
+                  <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
+                  <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
                   <td className="px-4 py-6 text-center text-xl whitespace-nowrap">
                     <span title={s.transport_mode ?? "land"}>
                       {transportEmoji(s.transport_mode ?? "land")}
                     </span>
                   </td>
-                  <td className="px-4 py-6 break-words max-w-[120px]">{s.receiver_name ?? "—"}</td>
-                  <td className="px-4 py-6 break-words max-w-[160px]">{s.description ?? "—"}</td>
                   <td className="px-4 py-6 min-w-[130px] whitespace-nowrap">
                     <span className={statusBadgeClass(s.status)}>{s.status ?? "—"}</span>
                   </td>
