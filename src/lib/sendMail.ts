@@ -164,8 +164,8 @@ export function buildCreatedEmail(s: ShipmentEmailCtx) {
 ${table(
   `<tr>
     <td colspan="2" style="padding:12px 0; text-align:center;">
-      <div style="font-size:11px; color:#6B7280; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">Tracking ID</div>
-      <div style="font-size:22px; color:#DC2626; font-weight:800; letter-spacing:1px;">${v(s.tracking_number)}</div>
+      <div style="font-size:11px; color:#6B7280; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; text-align:center;">Tracking ID</div>
+      <div style="font-size:22px; color:#DC2626; font-weight:800; letter-spacing:1px; text-align:center;">${v(s.tracking_number)}</div>
     </td>
   </tr>`
  +
@@ -188,14 +188,73 @@ ${CONFIDENTIALITY}`;
   return { subject: `Shipment Registration Confirmed — ${s.tracking_number}`, message: msg };
 }
 
+// ---------- Mode-specific copy ----------
 
-export function buildOriginWarehouseEmail(s: ShipmentEmailCtx) {
+type ModeCopy = {
+  originTitle: string; originBody: string; originBadge: string;
+  transitTitle: string; transitBody: string; transitBadge: string;
+  arrivedTitle: string; arrivedBody: string; arrivedBadge: string;
+  originSubject: string; transitSubject: string; arrivedSubject: string;
+};
+
+const LAND_COPY: ModeCopy = {
+  originTitle: "SHIPMENT AT ORIGIN WAREHOUSE",
+  originBody: "Your shipment has been received at our origin warehouse and is currently being prepared for dispatch. You will receive further updates as your shipment progresses.",
+  originBadge: "ORIGIN WAREHOUSE",
+  originSubject: "Your Shipment Is at the Origin Warehouse",
+  transitTitle: "YOUR SHIPMENT IS IN TRANSIT",
+  transitBody: "Your shipment is now in transit and actively moving toward its destination. Our logistics team is monitoring its progress to ensure timely and safe delivery.",
+  transitBadge: "IN TRANSIT",
+  transitSubject: "Your Shipment Is Now In Transit",
+  arrivedTitle: "ARRIVED AT DEPOT",
+  arrivedBody: "Your shipment has arrived at our depot and is being processed for the next stage of delivery.",
+  arrivedBadge: "AT DEPOT",
+  arrivedSubject: "Your Shipment Has Arrived at the Depot",
+};
+
+const AIR_COPY: ModeCopy = {
+  originTitle: "SHIPMENT AT ORIGIN AIRPORT",
+  originBody: "Your air cargo has been checked in at the origin airport and is being prepared for the next available flight. You will be notified once it departs.",
+  originBadge: "ORIGIN AIRPORT",
+  originSubject: "Your Air Cargo Is at the Origin Airport",
+  transitTitle: "YOUR SHIPMENT IS IN FLIGHT",
+  transitBody: "Your air cargo has departed and is currently in flight toward its destination airport. Our aviation logistics team is tracking the flight to ensure a smooth arrival and onward delivery.",
+  transitBadge: "IN FLIGHT",
+  transitSubject: "Your Air Cargo Is In Flight",
+  arrivedTitle: "ARRIVED AT NEAREST AIRPORT",
+  arrivedBody: "Your air cargo has landed at the nearest destination airport and is being cleared for onward delivery.",
+  arrivedBadge: "AT NEAREST AIRPORT",
+  arrivedSubject: "Your Air Cargo Has Arrived at the Nearest Airport",
+};
+
+const SEA_COPY: ModeCopy = {
+  originTitle: "SHIPMENT AT ORIGIN PORT",
+  originBody: "Your sea freight has been received at the origin port and is being prepared for vessel loading. You will be notified once the vessel departs.",
+  originBadge: "ORIGIN PORT",
+  originSubject: "Your Sea Freight Is at the Origin Port",
+  transitTitle: "YOUR SHIPMENT IS AT SEA",
+  transitBody: "Your sea freight has set sail aboard the vessel and is currently at sea, en route to the destination port. Our maritime logistics team is monitoring the voyage closely.",
+  transitBadge: "AT SEA",
+  transitSubject: "Your Sea Freight Is At Sea",
+  arrivedTitle: "ARRIVED AT DESTINATION PORT",
+  arrivedBody: "Your sea freight has arrived at the destination port and is being processed through port operations for onward delivery.",
+  arrivedBadge: "AT DESTINATION PORT",
+  arrivedSubject: "Your Sea Freight Has Arrived at the Destination Port",
+};
+
+function copyForMode(mode?: string | null): ModeCopy {
+  const m = (mode || "land").toLowerCase();
+  if (m === "air") return AIR_COPY;
+  if (m === "sea") return SEA_COPY;
+  return LAND_COPY;
+}
+
+export function buildOriginEmail(s: ShipmentEmailCtx) {
+  const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 6px 0;">SHIPMENT AT ORIGIN WAREHOUSE</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  Your shipment has been received at our origin warehouse and is currently being prepared for dispatch. You will receive further updates as your shipment progresses.
-</p>
-${badge("ORIGIN WAREHOUSE", "#DBEAFE", "#1D4ED8")}
+<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 6px 0;">${c.originTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.originBody}</p>
+${badge(c.originBadge, "#DBEAFE", "#1D4ED8")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Origin", v(s.origin_label)) +
@@ -204,16 +263,15 @@ ${table(
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#1D4ED8")}
 ${CONFIDENTIALITY}`;
-  return { subject: `Your Shipment Is at the Origin Warehouse — ${s.tracking_number}`, message: msg };
+  return { subject: `${c.originSubject} — ${s.tracking_number}`, message: msg };
 }
 
 export function buildInTransitEmail(s: ShipmentEmailCtx) {
+  const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#B91C1C; font-size:18px; margin:0 0 6px 0;">YOUR SHIPMENT IS IN TRANSIT</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  We are pleased to inform you that your shipment is now in transit and actively moving toward its destination. Our logistics team is monitoring its progress to ensure timely and safe delivery.
-</p>
-${badge("IN TRANSIT", "#FEE2E2", "#B91C1C")}
+<h2 style="color:#B91C1C; font-size:18px; margin:0 0 6px 0;">${c.transitTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.transitBody}</p>
+${badge(c.transitBadge, "#FEE2E2", "#B91C1C")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Current Location", v(s.current_location)) +
@@ -222,32 +280,15 @@ ${table(
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#B91C1C")}
 ${CONFIDENTIALITY}`;
-  return { subject: `Your Shipment Is Now In Transit — ${s.tracking_number}`, message: msg };
+  return { subject: `${c.transitSubject} — ${s.tracking_number}`, message: msg };
 }
 
-export function buildCustomsHoldEmail(s: ShipmentEmailCtx) {
+export function buildArrivedEmail(s: ShipmentEmailCtx) {
+  const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">&#9888; CUSTOMS INSPECTION HOLD</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  Your shipment is currently being held by customs authorities for inspection and clearance. A customs processing fee must be settled before your shipment can continue to its destination. Once payment is confirmed, delivery will resume immediately. Please act promptly to avoid further delays.
-</p>
-${badge("ON CUSTOMS HOLD", "#FEF3C7", "#D97706")}
-${table(
-  row("Tracking ID", v(s.tracking_number)) +
-  `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:5px 0; font-size:14px; color:#D97706; font-weight:bold;">${v(s.amount_due)}</td></tr>`
-)}
-${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW")}
-${CONFIDENTIALITY}`;
-  return { subject: `Action Required: Your Shipment Is On Customs Hold — ${s.tracking_number}`, message: msg };
-}
-
-export function buildAirportEmail(s: ShipmentEmailCtx) {
-  const msg = `
-<h2 style="color:#0E7490; font-size:18px; margin:0 0 6px 0;">ARRIVED AT NEAREST AIRPORT</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  Your shipment has arrived at the nearest airport and is currently being processed for the next stage of delivery. Our team is working to ensure it continues to its destination without delay.
-</p>
-${badge("AT NEAREST AIRPORT", "#CFFAFE", "#0E7490")}
+<h2 style="color:#0E7490; font-size:18px; margin:0 0 6px 0;">${c.arrivedTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.arrivedBody}</p>
+${badge(c.arrivedBadge, "#CFFAFE", "#0E7490")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Current Location", v(s.current_location)) +
@@ -256,7 +297,31 @@ ${table(
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#0E7490")}
 ${CONFIDENTIALITY}`;
-  return { subject: `Your Shipment Has Arrived at the Nearest Airport — ${s.tracking_number}`, message: msg };
+  return { subject: `${c.arrivedSubject} — ${s.tracking_number}`, message: msg };
+}
+
+// ---------- Shared (mode-independent) statuses ----------
+
+export function buildCustomsHoldEmail(s: ShipmentEmailCtx) {
+  const headline = s.hold_headline && s.hold_headline.trim() ? s.hold_headline : null;
+  const body = s.hold_body && s.hold_body.trim() ? s.hold_body : null;
+  const footer = s.hold_footer_note && s.hold_footer_note.trim() ? s.hold_footer_note : null;
+  const amount = s.amount_due != null && s.amount_due !== "" ? String(s.amount_due) : null;
+
+  const subject = headline ? `${headline} — ${s.tracking_number}` : `Action Required: Shipment On Hold — ${s.tracking_number}`;
+
+  const msg = `
+${headline ? `<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">${headline}</h2>` : `<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">SHIPMENT ON HOLD</h2>`}
+${body ? `<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${body}</p>` : ""}
+${badge("ON HOLD", "#FEF3C7", "#D97706")}
+${table(
+  row("Tracking ID", v(s.tracking_number)) +
+  (amount ? `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:5px 0; font-size:14px; color:#D97706; font-weight:bold;">${amount}</td></tr>` : "")
+)}
+${footer ? `<p style="color:#6B7280; font-size:12px; line-height:1.5; margin:10px 0 0 0;">${footer}</p>` : ""}
+${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW")}
+${CONFIDENTIALITY}`;
+  return { subject, message: msg };
 }
 
 export function buildPickUpEmail(s: ShipmentEmailCtx) {
@@ -296,7 +361,7 @@ export function buildDeliveredEmail(s: ShipmentEmailCtx) {
   const msg = `
 <h2 style="color:#065F46; font-size:18px; margin:0 0 6px 0;">SHIPMENT DELIVERED SUCCESSFULLY</h2>
 <p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  We are pleased to confirm that your shipment has been successfully delivered to its destination. We hope your experience with Tranzex Route Logistics was seamless. Thank you for trusting us with your delivery — we look forward to serving you again.
+  We are pleased to confirm that your shipment has been successfully delivered to its destination. Thank you for trusting us with your delivery.
 </p>
 ${badge("DELIVERED", "#D1FAE5", "#065F46")}
 ${table(
@@ -309,9 +374,9 @@ ${CONFIDENTIALITY}`;
 
 export function buildFailedEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#DC2626; font-size:18px; margin:0 0 6px 0;">DELIVERY ATTEMPT FAILED</h2>
+<h2 style="color:#DC2626; font-size:18px; margin:0 0 6px 0;">PICK-UP / DELIVERY ATTEMPT FAILED</h2>
 <p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  Unfortunately, a delivery attempt for your shipment was unsuccessful. Please contact our support team as soon as possible so we can arrange an alternative delivery or collection.
+  Unfortunately, a delivery/pick-up attempt for your shipment was unsuccessful. Please contact our support team as soon as possible so we can arrange an alternative delivery or collection.
 </p>
 ${badge("FAILED", "#FEE2E2", "#DC2626")}
 ${table(
@@ -320,23 +385,23 @@ ${table(
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#DC2626")}
 ${CONFIDENTIALITY}`;
-  return { subject: `Delivery Attempt Failed — ${s.tracking_number}`, message: msg };
+  return { subject: `Pick-Up / Delivery Attempt Failed — ${s.tracking_number}`, message: msg };
 }
 
 export function buildReturnedEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#374151; font-size:18px; margin:0 0 6px 0;">SHIPMENT RETURNED TO WAREHOUSE</h2>
+<h2 style="color:#374151; font-size:18px; margin:0 0 6px 0;">SHIPMENT RETURNED TO ORIGIN</h2>
 <p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
-  Your shipment has been returned to the warehouse. This may have occurred due to an unsuccessful delivery attempt or other circumstances. Please contact our support team at your earliest convenience to arrange redelivery or collection.
+  Your shipment has been returned to origin. This may have occurred due to an unsuccessful delivery attempt or other circumstances. Please contact our support team to arrange redelivery or collection.
 </p>
-${badge("RETURNED TO WAREHOUSE", "#F3F4F6", "#374151")}
+${badge("RETURNED TO ORIGIN", "#F3F4F6", "#374151")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
   row("Current Location", v(s.current_location))
 )}
 ${trackBtn(trackUrl(s.tracking_number), "#374151")}
 ${CONFIDENTIALITY}`;
-  return { subject: `Your Shipment Has Been Returned to Warehouse — ${s.tracking_number}`, message: msg };
+  return { subject: `Your Shipment Has Been Returned to Origin — ${s.tracking_number}`, message: msg };
 }
 
 export function buildCustomEmail(trackingNumber: string, customMessage: string) {
@@ -345,6 +410,10 @@ export function buildCustomEmail(trackingNumber: string, customMessage: string) 
 ${CONFIDENTIALITY}`;
   return { subject: `Message from Tranzex Route Logistics — ${trackingNumber}`, message: msg };
 }
+
+// Back-compat alias.
+export const buildAirportEmail = buildArrivedEmail;
+export const buildOriginWarehouseEmail = buildOriginEmail;
 
 // ---------- Status router ----------
 
@@ -357,18 +426,14 @@ export function buildStatusEmail(status: string | null | undefined, s: ShipmentE
   if (k.includes("failed")) return buildFailedEmail(s);
   if (k.includes("returned")) return buildReturnedEmail(s);
   if (k.includes("pick")) return buildPickUpEmail(s);
-  // Origin states (Origin Warehouse / Origin Airport / Origin Port) — checked
-  // before generic "airport" / "port" so origin always wins.
-  if (k.startsWith("origin")) return buildOriginWarehouseEmail(s);
-  // Arrival hubs (Arrived At Nearest Airport / Depot / Destination Port)
+  if (k.startsWith("origin")) return buildOriginEmail(s);
   if (k.includes("arrived") || k.includes("airport") || k.includes("depot") || k.includes("destination port")) {
-    return buildAirportEmail(s);
+    return buildArrivedEmail(s);
   }
-  // Movement states (In-Transit / Departed / In Flight / At Sea / Departed Port)
   if (k.includes("transit") || k.includes("departed") || k.includes("flight") || k.includes("at sea")) {
     return buildInTransitEmail(s);
   }
-  if (k.includes("warehouse")) return buildReturnedEmail(s);
+  if (k.includes("warehouse")) return buildOriginEmail(s);
   return {
     subject: `Shipment Update — ${s.tracking_number}`,
     message: `
