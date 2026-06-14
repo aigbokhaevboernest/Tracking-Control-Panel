@@ -19,7 +19,7 @@ function safeFormat(value: any, pattern: string): string {
 function transportLabel(mode: string | null | undefined) {
   if (mode === "air") return "✈️ Air";
   if (mode === "sea") return "🚢 Sea";
-  if (mode === "road") return "🚛 Land";
+  if (mode === "land") return "🚛 Land";
   return "—";
 }
 
