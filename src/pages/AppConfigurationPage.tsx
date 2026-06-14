@@ -16,7 +16,7 @@ export default function AppConfigurationPage() {
 
   useEffect(() => {
     supabase
-      .from("app_config")
+      .from("hold_settings")
       .select("*")
       .eq("id", 1)
       .maybeSingle()
@@ -35,7 +35,7 @@ export default function AppConfigurationPage() {
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("app_config")
+        .from("hold_settings")
         .upsert({ ...data, id: 1 });
       if (error) throw error;
       toast.success("Settings saved");
