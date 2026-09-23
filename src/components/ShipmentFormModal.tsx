@@ -24,7 +24,6 @@ const schema = z.object({
   tracking_number: z.string().min(3, "Required"),
   transport_mode: z.enum(["land", "air", "sea"]).default("land"),
   status: optStr, current_location: optStr, amount_due: optStr, payment_mode: optStr,
-  crypto_currency: optStr,
   comments: optStr, origin_label: optStr, current_stop_label: optStr, destination_label: optStr,
   package_type: optStr, weight: optStr, description: optStr, date_sent: optStr,
   expected_delivery_date: optStr, show_image: z.boolean().optional(),
@@ -32,7 +31,8 @@ const schema = z.object({
   receiver_name: optStr, receiver_phone: optStr, receiver_email: optStr, receiver_address: optStr, receiver_country: optStr,
   hold_headline: optStr, hold_body: optStr, hold_footer_note: optStr, hold_amount: optStr,
   hold_contact_email: optStr, hold_note: optStr,
-  crypto_wallet_address: optStr, payment_instruction_note: optStr,
+  btc_wallet: optStr, eth_wallet: optStr, usdt_wallet: optStr,
+  payment_instruction_note: optStr,
   bank_name: optStr, bank_account_number: optStr, bank_account_name: optStr,
   bank_instruction_note: optStr, bank_details: optStr,
   proof_of_delivery_url: optStr,
@@ -137,16 +137,6 @@ function FL({ children }: { children: ReactNode }) {
   return <Label className="text-xs font-semibold text-gray-600">{children}</Label>;
 }
 
-function walletForCurrency(currency: string | null | undefined, cfg: any): string {
-  if (!cfg) return "";
-  switch ((currency ?? "").toLowerCase()) {
-    case "ethereum": return cfg.default_eth_wallet ?? "";
-    case "usdt":     return cfg.default_usdt_wallet ?? "";
-    case "bitcoin":
-    default:         return cfg.default_btc_wallet ?? "";
-  }
-}
-
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -163,14 +153,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       defaultValues: {
         tracking_number: generateTrackingNumber(),
         transport_mode: "land",
-        crypto_currency: "Bitcoin",
         show_image: true,
       } as any,
     });
 
   const paymentMode = watch("payment_mode");
   const transportMode = (watch("transport_mode") ?? "land") as TransportMode;
-  const cryptoCurrency = watch("crypto_currency") ?? "Bitcoin";
   const trackingNumber = watch("tracking_number");
 
   useEffect(() => {
@@ -190,7 +178,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       reset({
         tracking_number: generateTrackingNumber(),
         transport_mode: "land",
-        crypto_currency: "Bitcoin",
         show_image: true,
       } as any);
       setImageUrl(null);
@@ -206,21 +193,20 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         .then(({ data: cfg }) => {
           if (!cfg) return;
           setAppConfig(cfg);
-          const currency = cfg.default_crypto_currency ?? "Bitcoin";
-          setValue("crypto_currency", currency);
           setValue("payment_mode", cfg.default_payment_mode ?? "Crypto");
           setValue("hold_headline", cfg.default_hold_headline ?? "");
           setValue("hold_body", cfg.default_hold_body ?? "");
           setValue("hold_footer_note", cfg.default_hold_footer ?? "");
           setValue("hold_contact_email", cfg.support_email ?? "");
-          setValue("crypto_wallet_address", walletForCurrency(currency, cfg));
+          setValue("btc_wallet", cfg.default_btc_wallet ?? "");
+          setValue("eth_wallet", cfg.default_eth_wallet ?? "");
+          setValue("usdt_wallet", cfg.default_usdt_wallet ?? "");
           setValue("payment_instruction_note", cfg.default_payment_note ?? "");
-                    setValue("bank_name", cfg.default_bank_name ?? "");
+          setValue("bank_name", cfg.default_bank_name ?? "");
           setValue("bank_account_number", cfg.default_bank_account_number ?? "");
           setValue("bank_account_name", cfg.default_bank_account_name ?? "");
           setValue("bank_instruction_note", cfg.default_bank_note ?? "");
         });
-
       return;
     }
 
@@ -233,10 +219,13 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       ]);
       setAppConfig(cfg ?? null);
       if (data) {
+        const wallets = (data as any).crypto_wallets ?? {};
         reset({
           ...data,
           transport_mode: (data as any).transport_mode ?? "land",
-          crypto_currency: (data as any).crypto_currency ?? cfg?.default_crypto_currency ?? "Bitcoin",
+          btc_wallet: wallets.BTC ?? (data as any).crypto_wallet_address ?? "",
+          eth_wallet: wallets.ETH ?? "",
+          usdt_wallet: wallets.USDT ?? "",
           date_sent: data.date_sent ?? "",
           expected_delivery_date: data.expected_delivery_date ?? "",
         } as any);
@@ -246,13 +235,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       setReady(true);
     })();
   }, [open, shipmentId, reset, setValue]);
-
-  useEffect(() => {
-    if (!ready || !appConfig) return;
-    if (paymentMode !== "Crypto") return;
-    const w = walletForCurrency(cryptoCurrency, appConfig);
-    if (w) setValue("crypto_wallet_address", w);
-  }, [cryptoCurrency, paymentMode, ready, appConfig, setValue]);
 
   async function uploadFile(file: File, setter: (url: string) => void) {
     setUploading(true);
@@ -285,6 +267,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         values.destination_label ? geocode(values.destination_label) : Promise.resolve(null),
       ]);
 
+      // Build the crypto_wallets JSONB object from the three independent
+      // wallet fields — nothing here locks the shipment to a single
+      // currency, matching the Bank section's "fill what you have" pattern.
+      const cryptoWalletsObj: Record<string, string> = {};
+      if (values.btc_wallet) cryptoWalletsObj.BTC = values.btc_wallet;
+      if (values.eth_wallet) cryptoWalletsObj.ETH = values.eth_wallet;
+      if (values.usdt_wallet) cryptoWalletsObj.USDT = values.usdt_wallet;
+
       const payload: any = {
         ...values,
         status: values.status || (shipmentId ? undefined : "Origin Warehouse"),
@@ -295,7 +285,14 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         origin_lat: origin?.lat ?? null, origin_lng: origin?.lng ?? null,
         current_stop_lat: currentStop?.lat ?? null, current_stop_lng: currentStop?.lng ?? null,
         destination_lat: destination?.lat ?? null, destination_lng: destination?.lng ?? null,
+        crypto_wallets: Object.keys(cryptoWalletsObj).length ? cryptoWalletsObj : null,
+        // legacy single-wallet column kept in sync for any older code paths
+        crypto_wallet_address: cryptoWalletsObj.BTC || cryptoWalletsObj.ETH || cryptoWalletsObj.USDT || null,
       };
+
+      delete payload.btc_wallet;
+      delete payload.eth_wallet;
+      delete payload.usdt_wallet;
 
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
@@ -497,17 +494,22 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 </div>
                 {paymentMode === "Crypto" && <>
                   <div className="space-y-1">
-                    <FL>Crypto Currency</FL>
-                    <FSelect icon={Wallet} color="green" {...register("crypto_currency")}>
-                      <option value="Bitcoin"> Bitcoin (BTC)</option>
-                      <option value="Ethereum"> Ethereum (ETH)</option>
-                      <option value="USDT"> USDT (Tether)</option>
-                    </FSelect>
+                    <Label className="text-xs font-semibold text-amber-500">Bitcoin (BTC) Wallet</Label>
+                    <FInput icon={Wallet} color="green" {...register("btc_wallet")} placeholder="BTC wallet address" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold text-indigo-600">Ethereum (ETH) Wallet</Label>
+                    <FInput icon={Wallet} color="green" {...register("eth_wallet")} placeholder="ETH wallet address" />
                   </div>
                   <div className="space-y-1 sm:col-span-2">
-                    <FL>{cryptoCurrency} Wallet Address</FL>
-                    <FInput icon={Wallet} color="green" {...register("crypto_wallet_address")} />
+                    <Label className="text-xs font-semibold text-emerald-600">
+                      USDT Wallet <span className="text-red-600">(Network: TRON / TRC20)</span>
+                    </Label>
+                    <FInput icon={Wallet} color="green" {...register("usdt_wallet")} placeholder="USDT (TRC20) wallet address" />
                   </div>
+                  <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
+                    Fill in as many as apply — the tracking page will let the customer pick from whichever are set, just like Bank Transfer.
+                  </p>
                   <div className="space-y-1 sm:col-span-2"><FL>Payment Note</FL><FTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
                 </>}
                 {paymentMode === "Bank" && <>
