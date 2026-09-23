@@ -215,10 +215,12 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           setValue("hold_contact_email", cfg.support_email ?? "");
           setValue("crypto_wallet_address", walletForCurrency(currency, cfg));
           setValue("payment_instruction_note", cfg.default_payment_note ?? "");
-          setValue("bank_name", cfg.default_bank_name ?? "");
+                    setValue("bank_name", cfg.default_bank_name ?? "");
           setValue("bank_account_number", cfg.default_bank_account_number ?? "");
           setValue("bank_account_name", cfg.default_bank_account_name ?? "");
+          setValue("bank_instruction_note", cfg.default_bank_note ?? "");
         });
+
       return;
     }
 
