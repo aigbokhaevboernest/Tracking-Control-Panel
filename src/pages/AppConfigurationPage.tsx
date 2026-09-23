@@ -241,6 +241,14 @@ export default function AppConfigurationPage() {
                   placeholder="Tranzex Route Logistics Ltd"
                 />
               </div>
+              <div className="md:col-span-2">
+                <Label>Bank Instruction Note</Label>
+                <Textarea
+                  value={data.default_bank_note ?? ""}
+                  onChange={(e) => set("default_bank_note", e.target.value)}
+                  placeholder="Please transfer to the account above and include..."
+                />
+              </div>
             </div>
           )}
         </Card>
