@@ -61,7 +61,7 @@ function fmtDate(x: any) {
   if (isNaN(d.getTime())) return String(x);
   return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
-function trackUrl(t: string) { return `https://www.tranzexlogistics.com/tracking/${encodeURIComponent(t)}`; }
+function trackUrl(t: string) { return `https://www.tranzexlogistics.com/tracking?n=${encodeURIComponent(t)}`; }
 
 function row(label: string, value: string) {
   return `<tr><td style="padding:3px 0; width:50%; color:#6B7280; font-size:14px;">${label}</td><td style="padding:3px 0; font-size:14px; color:#111827; font-weight:500;">${value}</td></tr>`;
