@@ -156,6 +156,14 @@ export interface ShipmentEmailCtx {
 // ---------- Template builders ----------
 
 export function buildCreatedEmail(s: ShipmentEmailCtx) {
+  const modeLabel = (() => {
+    const m = (s.transport_mode || "").toLowerCase().trim();
+    if (m === "air") return "Air Freight";
+    if (m === "sea") return "Sea Freight";
+    if (m === "land") return "Land Freight";
+    return null;
+  })();
+
   const msg = `
 <h2 style="color:#111827; font-size:18px; margin:0 0 6px 0;">SHIPMENT REGISTRATION SUCCESSFUL</h2>
 <p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 12px 0;">
@@ -169,6 +177,7 @@ ${table(
     </td>
   </tr>`
  +
+  (modeLabel ? row("Transport Mode", modeLabel) : "") +
   row("Sender's Full Name", v(s.sender_name)) +
   row("Sender's Country", v(s.sender_country)) +
   `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
@@ -187,7 +196,6 @@ ${trackBtn(trackUrl(s.tracking_number), "#7C3AED")}
 ${CONFIDENTIALITY}`;
   return { subject: `Shipment Registration Confirmed — ${s.tracking_number}`, message: msg };
 }
-
 // ---------- Mode-specific copy ----------
 
 type ModeCopy = {
