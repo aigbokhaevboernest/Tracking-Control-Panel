@@ -16,8 +16,8 @@ export interface SendMailResult {
 }
 
 const CONFIDENTIALITY = `
-<hr style="border:none; border-top:1px solid #E5E7EB; margin:16px 0;"/>
-<p style="font-size:12px; color:#9CA3AF; line-height:1.5; margin:0;">
+<hr style="border:none; border-top:1px solid #E5E7EB; margin:10px 0;"/>
+<p style="font-size:12px; color:#9CA3AF; line-height:1.4; margin:0;">
   <strong>NOTICE:</strong> The content of this email and any attachments is confidential and intended only for the recipient. If you have received this in error, please notify the sender immediately and delete all copies.
 </p>`;
 
@@ -61,14 +61,14 @@ function fmtDate(x: any) {
   if (isNaN(d.getTime())) return String(x);
   return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
-function trackUrl(t: string) { return `https://tranzexroute.com/track/${encodeURIComponent(t)}`; }
+function trackUrl(t: string) { return `https://www.tranzexlogistics.com/tracking/${encodeURIComponent(t)}`; }
 
 function row(label: string, value: string) {
-  return `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">${label}</td><td style="padding:5px 0; font-size:14px; color:#111827; font-weight:500;">${value}</td></tr>`;
+  return `<tr><td style="padding:3px 0; width:50%; color:#6B7280; font-size:14px;">${label}</td><td style="padding:3px 0; font-size:14px; color:#111827; font-weight:500;">${value}</td></tr>`;
 }
 
 function table(rows: string) {
-  return `<table style="width:100%; border-collapse:collapse; margin:12px 0;">${rows}</table>`;
+  return `<table style="width:100%; border-collapse:collapse; margin:8px 0;">${rows}</table>`;
 }
 
 function badge(text: string, bg: string, color: string) {
@@ -76,7 +76,7 @@ function badge(text: string, bg: string, color: string) {
 }
 
 function trackBtn(url: string, bg: string, label = "TRACK YOUR SHIPMENT") {
-  return `<div style="text-align:center; margin-top:14px;"><a href="${url}" style="display:inline-block; background:${bg}; color:#ffffff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">${label}</a></div>`;
+  return `<div style="text-align:center; margin-top:10px;"><a href="${url}" style="display:inline-block; background:${bg}; color:#ffffff; padding:10px 24px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">${label}</a></div>`;
 }
 
 function statusBadge(status: string | null | undefined) {
@@ -165,27 +165,27 @@ export function buildCreatedEmail(s: ShipmentEmailCtx) {
   })();
 
   const msg = `
-<h2 style="color:#111827; font-size:18px; margin:0 0 6px 0;">SHIPMENT REGISTRATION SUCCESSFUL</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 12px 0;">
+<h2 style="color:#111827; font-size:18px; margin:0 0 4px 0;">SHIPMENT REGISTRATION SUCCESSFUL</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   A shipment has been successfully registered with your contact details as the consignee. Please review the information below carefully and contact us immediately if anything does not match your records.
 </p>
 ${table(
   `<tr>
-    <td colspan="2" style="padding:12px 0; text-align:center;">
-      <div style="font-size:11px; color:#6B7280; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; text-align:center;">Tracking ID</div>
-      <div style="font-size:22px; color:#DC2626; font-weight:800; letter-spacing:1px; text-align:center;">${v(s.tracking_number)}</div>
+    <td colspan="2" style="padding:6px 0 8px 0; text-align:right;">
+      <div style="font-size:11px; color:#6B7280; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; text-align:right;">Tracking ID</div>
+      <div style="font-size:20px; color:#DC2626; font-weight:800; letter-spacing:1px; text-align:right;">${v(s.tracking_number)}</div>
     </td>
   </tr>`
  +
   (modeLabel ? row("Transport Mode", modeLabel) : "") +
   row("Sender's Full Name", v(s.sender_name)) +
   row("Sender's Country", v(s.sender_country)) +
-  `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
+  `<tr><td colspan="2" style="padding:4px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:3px 0;"/></td></tr>` +
   row("Receiver's Full Name", v(s.receiver_name)) +
   row("Receiver's Country", v(s.receiver_country)) +
   row("Receiver's Address", v(s.receiver_address)) +
   row("Receiver's Phone Number", v(s.receiver_phone)) +
-  `<tr><td colspan="2" style="padding:8px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:4px 0;"/></td></tr>` +
+  `<tr><td colspan="2" style="padding:4px 0;"><hr style="border:none; border-top:1px solid #E5E7EB; margin:3px 0;"/></td></tr>` +
   row("Package Type", v(s.package_type)) +
   row("Weight", v(s.weight)) +
   row("Origin", v(s.origin_label)) +
@@ -260,8 +260,8 @@ function copyForMode(mode?: string | null): ModeCopy {
 export function buildOriginEmail(s: ShipmentEmailCtx) {
   const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 6px 0;">${c.originTitle}</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.originBody}</p>
+<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 4px 0;">${c.originTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">${c.originBody}</p>
 ${badge(c.originBadge, "#DBEAFE", "#1D4ED8")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
@@ -277,8 +277,8 @@ ${CONFIDENTIALITY}`;
 export function buildInTransitEmail(s: ShipmentEmailCtx) {
   const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#B91C1C; font-size:18px; margin:0 0 6px 0;">${c.transitTitle}</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.transitBody}</p>
+<h2 style="color:#B91C1C; font-size:18px; margin:0 0 4px 0;">${c.transitTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">${c.transitBody}</p>
 ${badge(c.transitBadge, "#FEE2E2", "#B91C1C")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
@@ -294,8 +294,8 @@ ${CONFIDENTIALITY}`;
 export function buildArrivedEmail(s: ShipmentEmailCtx) {
   const c = copyForMode(s.transport_mode);
   const msg = `
-<h2 style="color:#0E7490; font-size:18px; margin:0 0 6px 0;">${c.arrivedTitle}</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${c.arrivedBody}</p>
+<h2 style="color:#0E7490; font-size:18px; margin:0 0 4px 0;">${c.arrivedTitle}</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">${c.arrivedBody}</p>
 ${badge(c.arrivedBadge, "#CFFAFE", "#0E7490")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
@@ -319,14 +319,14 @@ export function buildCustomsHoldEmail(s: ShipmentEmailCtx) {
   const subject = headline ? `${headline} — ${s.tracking_number}` : `Action Required: Shipment On Hold — ${s.tracking_number}`;
 
   const msg = `
-${headline ? `<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">${headline}</h2>` : `<h2 style="color:#D97706; font-size:18px; margin:0 0 6px 0;">SHIPMENT ON HOLD</h2>`}
-${body ? `<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">${body}</p>` : ""}
+${headline ? `<h2 style="color:#D97706; font-size:18px; margin:0 0 4px 0;">${headline}</h2>` : `<h2 style="color:#D97706; font-size:18px; margin:0 0 4px 0;">SHIPMENT ON HOLD</h2>`}
+${body ? `<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">${body}</p>` : ""}
 ${badge("ON HOLD", "#FEF3C7", "#D97706")}
 ${table(
   row("Tracking ID", v(s.tracking_number)) +
-  (amount ? `<tr><td style="padding:5px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:5px 0; font-size:14px; color:#D97706; font-weight:bold;">${amount}</td></tr>` : "")
+  (amount ? `<tr><td style="padding:3px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:3px 0; font-size:14px; color:#D97706; font-weight:bold;">${amount}</td></tr>` : "")
 )}
-${footer ? `<p style="color:#6B7280; font-size:12px; line-height:1.5; margin:10px 0 0 0;">${footer}</p>` : ""}
+${footer ? `<p style="color:#6B7280; font-size:12px; line-height:1.4; margin:6px 0 0 0;">${footer}</p>` : ""}
 ${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW")}
 ${CONFIDENTIALITY}`;
   return { subject, message: msg };
@@ -334,8 +334,8 @@ ${CONFIDENTIALITY}`;
 
 export function buildPickUpEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 6px 0;">READY FOR PICK-UP</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#1D4ED8; font-size:18px; margin:0 0 4px 0;">READY FOR PICK-UP</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   Your shipment has arrived and is now ready for pick-up at the delivery location. Please bring a valid form of identification when collecting your package.
 </p>
 ${badge("PICK-UP", "#DBEAFE", "#1D4ED8")}
@@ -351,8 +351,8 @@ ${CONFIDENTIALITY}`;
 
 export function buildOutForDeliveryEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#065F46; font-size:18px; margin:0 0 6px 0;">OUT FOR DELIVERY</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#065F46; font-size:18px; margin:0 0 4px 0;">OUT FOR DELIVERY</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   Great news! Your shipment is out for delivery and is scheduled to arrive at your destination before the end of the day. Please ensure someone is available to receive it at the delivery address.
 </p>
 ${badge("OUT FOR DELIVERY", "#D1FAE5", "#065F46")}
@@ -367,8 +367,8 @@ ${CONFIDENTIALITY}`;
 
 export function buildDeliveredEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#065F46; font-size:18px; margin:0 0 6px 0;">SHIPMENT DELIVERED SUCCESSFULLY</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#065F46; font-size:18px; margin:0 0 4px 0;">SHIPMENT DELIVERED SUCCESSFULLY</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   We are pleased to confirm that your shipment has been successfully delivered to its destination. Thank you for trusting us with your delivery.
 </p>
 ${badge("DELIVERED", "#D1FAE5", "#065F46")}
@@ -382,8 +382,8 @@ ${CONFIDENTIALITY}`;
 
 export function buildFailedEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#DC2626; font-size:18px; margin:0 0 6px 0;">PICK-UP / DELIVERY ATTEMPT FAILED</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#DC2626; font-size:18px; margin:0 0 4px 0;">PICK-UP / DELIVERY ATTEMPT FAILED</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   Unfortunately, a delivery/pick-up attempt for your shipment was unsuccessful. Please contact our support team as soon as possible so we can arrange an alternative delivery or collection.
 </p>
 ${badge("FAILED", "#FEE2E2", "#DC2626")}
@@ -398,8 +398,8 @@ ${CONFIDENTIALITY}`;
 
 export function buildReturnedEmail(s: ShipmentEmailCtx) {
   const msg = `
-<h2 style="color:#374151; font-size:18px; margin:0 0 6px 0;">SHIPMENT RETURNED TO ORIGIN</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#374151; font-size:18px; margin:0 0 4px 0;">SHIPMENT RETURNED TO ORIGIN</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   Your shipment has been returned to origin. This may have occurred due to an unsuccessful delivery attempt or other circumstances. Please contact our support team to arrange redelivery or collection.
 </p>
 ${badge("RETURNED TO ORIGIN", "#F3F4F6", "#374151")}
@@ -414,7 +414,7 @@ ${CONFIDENTIALITY}`;
 
 export function buildCustomEmail(trackingNumber: string, customMessage: string) {
   const msg = `
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 12px 0;">${customMessage.replace(/\n/g, "<br/>")}</p>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">${customMessage.replace(/\n/g, "<br/>")}</p>
 ${CONFIDENTIALITY}`;
   return { subject: `Message from Tranzex Route Logistics — ${trackingNumber}`, message: msg };
 }
@@ -445,8 +445,8 @@ export function buildStatusEmail(status: string | null | undefined, s: ShipmentE
   return {
     subject: `Shipment Update — ${s.tracking_number}`,
     message: `
-<h2 style="color:#111827; font-size:18px; margin:0 0 6px 0;">SHIPMENT STATUS UPDATE</h2>
-<p style="color:#374151; font-size:14px; line-height:1.6; margin:0 0 10px 0;">
+<h2 style="color:#111827; font-size:18px; margin:0 0 4px 0;">SHIPMENT STATUS UPDATE</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
   Your shipment status has been updated. Please visit our tracking page for the latest information.
 </p>
 ${table(
@@ -503,17 +503,17 @@ export function buildInvoiceEmail(
   const stampLabel = (s.status || "OFFICIAL").toUpperCase();
 
   const holdSection = isOnHold && (s.hold_headline || s.hold_body) ? `
-      <tr><td style="padding:0 28px 16px;">
+      <tr><td style="padding:0 24px 12px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #fde047; background:#fefce8; border-radius:4px;">
-          <tr><td style="padding:14px 16px;">
-            <div style="font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#d97706; font-weight:700; margin-bottom:8px;">&#9651; Shipment on Hold</div>
-            ${s.hold_headline ? `<div style="font-size:14px; font-weight:800; color:#111827; margin-bottom:6px;">${s.hold_headline}</div>` : ""}
-            ${s.hold_body ? `<div style="font-size:12px; color:#374151; line-height:1.6; margin-bottom:8px;">${s.hold_body}</div>` : ""}
-            ${s.hold_contact_email ? `<div style="font-size:11.5px; color:#374151; margin-bottom:3px;">Contact: <strong>${s.hold_contact_email}</strong></div>` : ""}
-            ${s.crypto_wallet_address ? `<div style="font-size:11.5px; color:#374151; word-break:break-all; margin-bottom:8px;">Crypto Wallet: <strong>${s.crypto_wallet_address}</strong></div>` : ""}
+          <tr><td style="padding:10px 14px;">
+            <div style="font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#d97706; font-weight:700; margin-bottom:6px;">&#9651; Shipment on Hold</div>
+            ${s.hold_headline ? `<div style="font-size:14px; font-weight:800; color:#111827; margin-bottom:4px;">${s.hold_headline}</div>` : ""}
+            ${s.hold_body ? `<div style="font-size:12px; color:#374151; line-height:1.5; margin-bottom:6px;">${s.hold_body}</div>` : ""}
+            ${s.hold_contact_email ? `<div style="font-size:11.5px; color:#374151; margin-bottom:2px;">Contact: <strong>${s.hold_contact_email}</strong></div>` : ""}
+            ${s.crypto_wallet_address ? `<div style="font-size:11.5px; color:#374151; word-break:break-all; margin-bottom:6px;">Crypto Wallet: <strong>${s.crypto_wallet_address}</strong></div>` : ""}
             ${s.payment_instruction_note ? `
-            <div style="border:none; border-top:1px dashed #d97706; margin:8px 0;"></div>
-            <div style="font-size:11.5px; color:#374151; line-height:1.5;"><strong>Instructions:</strong> ${s.payment_instruction_note}</div>` : ""}
+            <div style="border:none; border-top:1px dashed #d97706; margin:6px 0;"></div>
+            <div style="font-size:11.5px; color:#374151; line-height:1.4;"><strong>Instructions:</strong> ${s.payment_instruction_note}</div>` : ""}
           </td></tr>
         </table>
       </td></tr>` : "";
@@ -526,20 +526,20 @@ export function buildInvoiceEmail(
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
 <body style="margin:0; padding:0; background:#f3f4f6; font-family:'DM Sans','Inter',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6; padding:24px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6; padding:20px 0;">
   <tr><td align="center">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:6px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08); max-width:600px; width:100%;">
 
       <!-- HEADER -->
-      <tr><td style="background:#d1d5db; padding:24px 28px;">
+      <tr><td style="background:#d1d5db; padding:18px 24px;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td style="vertical-align:top;">
               <div style="font-size:22px; font-weight:800; color:#111827; letter-spacing:0.5px; line-height:1.1;">INVOICE / WAYBILL</div>
-              <div style="font-size:11px; color:#555; margin-top:4px;">Tranzex Route Logistics</div>
+              <div style="font-size:11px; color:#555; margin-top:3px;">Tranzex Route Logistics</div>
             </td>
             <td style="text-align:right; vertical-align:top;">
-              <div style="font-size:11px; color:#555; margin-bottom:6px;">Issued: ${today}</div>
+              <div style="font-size:11px; color:#555; margin-bottom:4px;">Issued: ${today}</div>
               ${barcodeHtml(v(s.tracking_number))}
             </td>
           </tr>
@@ -547,73 +547,73 @@ export function buildInvoiceEmail(
       </td></tr>
 
       <!-- TRACKING -->
-      <tr><td style="padding:20px 28px 14px; text-align:center; border-bottom:1px solid #e5e7eb;">
+      <tr><td style="padding:14px 24px 10px; text-align:right; border-bottom:1px solid #e5e7eb;">
         <div style="font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#6b7280; font-weight:600;">Tracking Number</div>
-        <div style="font-size:22px; font-weight:700; color:#dc2626; letter-spacing:1px; margin-top:4px;">${v(s.tracking_number)}</div>
-        <div style="margin-top:8px;">
+        <div style="font-size:22px; font-weight:700; color:#dc2626; letter-spacing:1px; margin-top:2px;">${v(s.tracking_number)}</div>
+        <div style="margin-top:6px;">
           ${statusBadge(s.status)}
           ${s.current_location ? `<span style="font-size:12px; color:#6b7280; margin-left:8px;">&#x1F4CD; ${v(s.current_location)}</span>` : ""}
         </div>
       </td></tr>
 
       <!-- PARTIES -->
-      <tr><td style="padding:16px 28px; border-bottom:1px solid #e5e7eb;">
+      <tr><td style="padding:12px 24px; border-bottom:1px solid #e5e7eb;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="width:50%; vertical-align:top; padding-right:16px;">
-              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:4px; border-bottom:1px solid #e5e7eb; margin-bottom:6px;">From (Sender)</div>
-              <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:3px;">${v(s.sender_name)}</div>
-              ${s.sender_phone ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.sender_phone}</div>` : ""}
-              ${s.sender_email ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.sender_email}</div>` : ""}
-              ${s.sender_address ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.sender_address}</div>` : ""}
-              ${s.sender_country ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.sender_country}</div>` : ""}
+            <td style="width:50%; vertical-align:top; padding-right:14px;">
+              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:3px; border-bottom:1px solid #e5e7eb; margin-bottom:5px;">From (Sender)</div>
+              <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:2px;">${v(s.sender_name)}</div>
+              ${s.sender_phone ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.sender_phone}</div>` : ""}
+              ${s.sender_email ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.sender_email}</div>` : ""}
+              ${s.sender_address ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.sender_address}</div>` : ""}
+              ${s.sender_country ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.sender_country}</div>` : ""}
             </td>
-            <td style="width:50%; vertical-align:top; padding-left:16px; border-left:1px solid #e5e7eb;">
-              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:4px; border-bottom:1px solid #e5e7eb; margin-bottom:6px;">To (Receiver)</div>
-              <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:3px;">${v(s.receiver_name)}</div>
-              ${s.receiver_phone ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.receiver_phone}</div>` : ""}
-              ${s.receiver_email ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.receiver_email}</div>` : ""}
-              ${s.receiver_address ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.receiver_address}</div>` : ""}
-              ${s.receiver_country ? `<div style="font-size:12px; color:#374151; line-height:1.6;">${s.receiver_country}</div>` : ""}
+            <td style="width:50%; vertical-align:top; padding-left:14px; border-left:1px solid #e5e7eb;">
+              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:3px; border-bottom:1px solid #e5e7eb; margin-bottom:5px;">To (Receiver)</div>
+              <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:2px;">${v(s.receiver_name)}</div>
+              ${s.receiver_phone ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.receiver_phone}</div>` : ""}
+              ${s.receiver_email ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.receiver_email}</div>` : ""}
+              ${s.receiver_address ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.receiver_address}</div>` : ""}
+              ${s.receiver_country ? `<div style="font-size:12px; color:#374151; line-height:1.4;">${s.receiver_country}</div>` : ""}
             </td>
           </tr>
         </table>
       </td></tr>
 
       <!-- SHIPMENT DETAILS -->
-      <tr><td style="padding:14px 28px; border-bottom:1px solid #e5e7eb;">
-        <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:4px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">Shipment Details</div>
+      <tr><td style="padding:12px 24px; border-bottom:1px solid #e5e7eb;">
+        <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:3px; border-bottom:1px solid #e5e7eb; margin-bottom:8px;">Shipment Details</div>
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="width:50%; padding:4px 0; font-size:12px; color:#374151;">Origin: <strong style="color:#111;">${v(s.origin_label)}</strong></td>
-            <td style="width:50%; padding:4px 0; font-size:12px; color:#374151;">Destination: <strong style="color:#111;">${v(s.destination_label)}</strong></td>
+            <td style="width:50%; padding:2px 0; font-size:12px; color:#374151;">Origin: <strong style="color:#111;">${v(s.origin_label)}</strong></td>
+            <td style="width:50%; padding:2px 0; font-size:12px; color:#374151;">Destination: <strong style="color:#111;">${v(s.destination_label)}</strong></td>
           </tr>
           <tr>
-            <td style="padding:4px 0; font-size:12px; color:#374151;">Type: <strong style="color:#111;">${v(s.package_type)}</strong></td>
-            <td style="padding:4px 0; font-size:12px; color:#374151;">Weight: <strong style="color:#111;">${v(s.weight)}</strong></td>
+            <td style="padding:2px 0; font-size:12px; color:#374151;">Type: <strong style="color:#111;">${v(s.package_type)}</strong></td>
+            <td style="padding:2px 0; font-size:12px; color:#374151;">Weight: <strong style="color:#111;">${v(s.weight)}</strong></td>
           </tr>
           <tr>
-            <td style="padding:4px 0; font-size:12px; color:#374151;">Date Sent: <strong style="color:#111;">${fmtDate(s.date_sent)}</strong></td>
-            <td style="padding:4px 0; font-size:12px; color:#374151;">Exp. Delivery: <strong style="color:#111;">${fmtDate(s.expected_delivery_date)}</strong></td>
+            <td style="padding:2px 0; font-size:12px; color:#374151;">Date Sent: <strong style="color:#111;">${fmtDate(s.date_sent)}</strong></td>
+            <td style="padding:2px 0; font-size:12px; color:#374151;">Exp. Delivery: <strong style="color:#111;">${fmtDate(s.expected_delivery_date)}</strong></td>
           </tr>
-          ${s.description ? `<tr><td colspan="2" style="padding:4px 0; font-size:12px; color:#374151;">Description: <strong style="color:#111;">${v(s.description)}</strong></td></tr>` : ""}
+          ${s.description ? `<tr><td colspan="2" style="padding:2px 0; font-size:12px; color:#374151;">Description: <strong style="color:#111;">${v(s.description)}</strong></td></tr>` : ""}
         </table>
       </td></tr>
 
       <!-- COMMENTS -->
       ${s.comments ? `
-      <tr><td style="padding:14px 28px; border-bottom:1px solid #e5e7eb;">
-        <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:4px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">Comments</div>
-        <div style="background:#fffbeb; border-left:3px solid #f59e0b; padding:8px 12px; font-size:12px; color:#374151; font-style:italic;">${v(s.comments)}</div>
+      <tr><td style="padding:12px 24px; border-bottom:1px solid #e5e7eb;">
+        <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:3px; border-bottom:1px solid #e5e7eb; margin-bottom:8px;">Comments</div>
+        <div style="background:#fffbeb; border-left:3px solid #f59e0b; padding:6px 10px; font-size:12px; color:#374151; font-style:italic;">${v(s.comments)}</div>
       </td></tr>` : ""}
 
       <!-- BILLING + STAMP -->
-      <tr><td style="padding:14px 28px; border-bottom:1px solid #e5e7eb;">
+      <tr><td style="padding:12px 24px; border-bottom:1px solid #e5e7eb;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td style="vertical-align:top;">
-              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:4px; border-bottom:1px solid #e5e7eb; margin-bottom:10px;">Billing</div>
-              <div style="font-size:13px; color:#374151; margin-bottom:3px;">Amount Due: <strong style="color:#111;">${amount}</strong></div>
+              <div style="font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9ca3af; font-weight:600; padding-bottom:3px; border-bottom:1px solid #e5e7eb; margin-bottom:8px;">Billing</div>
+              <div style="font-size:13px; color:#374151; margin-bottom:2px;">Amount Due: <strong style="color:#111;">${amount}</strong></div>
               <div style="font-size:13px; color:#374151;">Payment Mode: <strong style="color:#111;">${v(s.payment_mode)}</strong></div>
             </td>
             <td style="text-align:right; vertical-align:bottom;">
@@ -627,12 +627,12 @@ export function buildInvoiceEmail(
       ${holdSection}
 
       <!-- TRACK BUTTON -->
-      <tr><td style="padding:20px 28px; text-align:center;">
+      <tr><td style="padding:16px 24px; text-align:center;">
         <a href="${trackUrl(s.tracking_number)}" style="display:inline-block; background:#7c3aed; color:#fff; padding:11px 28px; border-radius:8px; text-decoration:none; font-weight:700; font-size:14px; letter-spacing:0.5px;">Track Your Shipment</a>
       </td></tr>
 
       <!-- FOOTER -->
-      <tr><td style="padding:14px 28px 20px; text-align:center; border-top:1px solid #e5e7eb;">
+      <tr><td style="padding:10px 24px 16px; text-align:center; border-top:1px solid #e5e7eb;">
         <div style="font-size:10px; color:#9ca3af; font-style:italic;">This is a computer-generated invoice and does not require a signature.</div>
         <div style="font-size:10px; color:#9ca3af; margin-top:2px;">&#169; 2026 Tranzex Route Logistics &bull; support@tranzexroute.com</div>
       </td></tr>
