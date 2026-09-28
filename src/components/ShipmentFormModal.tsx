@@ -473,16 +473,82 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
                 </div>
               </Section>
 
-              <Section title="Locations & Map" color="teal">
+                            <Section title="Locations & Map" color="teal">
+                {transportMode === "land" && (
+                  <>
+                    <div className="space-y-1">
+                      <FL>Origin</FL>
+                      <FInput icon={Search} color="teal" {...register("origin_label")}
+                        onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }} />
+                    </div>
+                    <div className="space-y-1 sm:col-span-2"><FL>Destination</FL><FInput icon={Search} color="teal" {...register("destination_label")} /></div>
+                  </>
+                )}
+
+                {transportMode === "air" && (
+                  <>
+                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                      <div className="space-y-1">
+                        <FL>Origin IATA</FL>
+                        <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. ICN" />
+                      </div>
+                      <div className="space-y-1">
+                        <FL>Origin Airport</FL>
+                        <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Incheon Airport" />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                      <div className="space-y-1">
+                        <FL>Destination IATA</FL>
+                        <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. JFK" />
+                      </div>
+                      <div className="space-y-1">
+                        <FL>Destination Airport</FL>
+                        <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. John F. Kennedy Airport" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {transportMode === "sea" && (
+                  <>
+                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                      <div className="space-y-1">
+                        <FL>Origin UN/LOCODE</FL>
+                        <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. CNSHA" />
+                      </div>
+                      <div className="space-y-1">
+                        <FL>Origin Sea Port</FL>
+                        <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Port of Shanghai" />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                      <div className="space-y-1">
+                        <FL>Destination UN/LOCODE</FL>
+                        <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. USLAX" />
+                      </div>
+                      <div className="space-y-1">
+                        <FL>Destination Sea Port</FL>
+                        <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. Port of Los Angeles" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="space-y-1">
-                  <FL>Origin</FL>
-                  <FInput icon={Search} color="teal" {...register("origin_label")}
-                    onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }} />
+                  <FL>{transportMode === "land" ? "Current Stop" : "Current Location Label"}</FL>
+                  <FInput icon={Search} color="teal" {...register("current_stop_label")}
+                    placeholder={transportMode === "land" ? "" : "Optional — shown as a label only, doesn't move the map marker"} />
                 </div>
-                <div className="space-y-1"><FL>Current Stop</FL><FInput icon={Search} color="teal" {...register("current_stop_label")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Destination</FL><FInput icon={Search} color="teal" {...register("destination_label")} /></div>
                 <div className="space-y-1 sm:col-span-2"><FL>Current Location (display label)</FL><FInput icon={MapPin} color="teal" {...register("current_location")} /></div>
+
+                {transportMode !== "land" && (
+                  <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
+                    For {transportMode === "air" ? "air" : "sea"} shipments, the map's current position is set automatically by Status (Origin / Departed / In Flight or At Sea / Arrived) — the fields above only control labels and the origin/destination points.
+                  </p>
+                )}
               </Section>
+
 
               <Section title="Billing" color="green">
                 <div className="space-y-1"><FL>Amount Due</FL><FInput icon={DollarSign} color="green" type="text" {...register("amount_due")} /></div>
