@@ -36,6 +36,8 @@ const schema = z.object({
   bank_name: optStr, bank_account_number: optStr, bank_account_name: optStr,
   bank_instruction_note: optStr, bank_details: optStr,
   proof_of_delivery_url: optStr,
+  origin_code: optStr, destination_code: optStr,
+
 });
 
 type FormValues = z.infer<typeof schema>;
