@@ -331,6 +331,24 @@ ${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW"
 ${CONFIDENTIALITY}`;
   return { subject, message: msg };
 }
+export function buildPlainHoldEmail(s: ShipmentEmailCtx) {
+  const amount = s.amount_due != null && s.amount_due !== "" ? String(s.amount_due) : null;
+
+  const msg = `
+<h2 style="color:#D97706; font-size:18px; margin:0 0 4px 0;">ACTION REQUIRED: SHIPMENT ON HOLD</h2>
+<p style="color:#374151; font-size:14px; line-height:1.5; margin:0 0 8px 0;">
+  Your shipment has been placed on hold and requires your attention before it can proceed. Please visit the tracking page below to review the details and complete the required action.
+</p>
+${badge("ON HOLD", "#FEF3C7", "#D97706")}
+${table(
+  row("Tracking ID", v(s.tracking_number)) +
+  (amount ? `<tr><td style="padding:3px 0; width:50%; color:#6B7280; font-size:14px;">Amount Due</td><td style="padding:3px 0; font-size:14px; color:#D97706; font-weight:bold;">${amount}</td></tr>` : "")
+)}
+${trackBtn(trackUrl(s.tracking_number), "#D97706", "VIEW HOLD DETAILS & PAY NOW")}
+${CONFIDENTIALITY}`;
+
+  return { subject: `Action Required: Shipment On Hold — ${s.tracking_number}`, message: msg };
+}
 
 export function buildPickUpEmail(s: ShipmentEmailCtx) {
   const msg = `
