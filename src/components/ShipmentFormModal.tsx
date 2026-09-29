@@ -16,7 +16,9 @@ import { generateTrackingNumber, statusesForMode, TRANSPORT_MODES, type Transpor
 import { geocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
-import { sendMail, buildCreatedEmail, buildStatusEmail } from "@/lib/sendMail";
+import { HoldNotifyTypeModal, type HoldNotifyType } from "@/components/HoldNotifyTypeModal";
+import { HistoryEditor } from "@/components/HistoryEditor";
+import { sendMail, buildCreatedEmail, buildStatusEmail, buildPlainHoldEmail } from "@/lib/sendMail";
 
 const optStr = z.string().nullable().optional().or(z.literal("").transform(() => null));
 
@@ -37,7 +39,8 @@ const schema = z.object({
   bank_instruction_note: optStr, bank_details: optStr,
   proof_of_delivery_url: optStr,
   origin_code: optStr, destination_code: optStr,
-
+  // NOTE: do NOT add `history` here. The schema strips unknown keys, so the
+  // form's Save never overwrites history edited in the HistoryEditor.
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -139,15 +142,19 @@ function FL({ children }: { children: ReactNode }) {
   return <Label className="text-xs font-semibold text-gray-600">{children}</Label>;
 }
 
+const isHoldStatus = (s: string | null | undefined) => /hold|customs/i.test(s ?? "");
+
 export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [holdOpen, setHoldOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [ready, setReady] = useState(false);
   const [appConfig, setAppConfig] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   const { register, handleSubmit, reset, watch, setValue, getValues, formState: { errors } } =
     useForm<FormValues>({
@@ -184,6 +191,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       } as any);
       setImageUrl(null);
       setProofUrl(null);
+      setHistory([]);
       setReady(true);
 
       // Fetch defaults in the background and merge them in once they arrive.
@@ -233,6 +241,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         } as any);
         setImageUrl(data.package_image_url ?? null);
         setProofUrl(data.proof_of_delivery_url ?? null);
+        setHistory(Array.isArray((data as any).history) ? (data as any).history : []);
       }
       setReady(true);
     })();
@@ -260,7 +269,7 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
     setConfirmOpen(true);
   }
 
-  async function doSave(values: FormValues, sendEmailFlag: boolean) {
+  async function doSave(values: FormValues, sendEmailFlag: boolean, holdType?: HoldNotifyType) {
     setSubmitting(true);
     try {
       const [origin, currentStop, destination] = await Promise.all([
@@ -269,9 +278,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         values.destination_label ? geocode(values.destination_label) : Promise.resolve(null),
       ]);
 
-      // Build the crypto_wallets JSONB object from the three independent
-      // wallet fields — nothing here locks the shipment to a single
-      // currency, matching the Bank section's "fill what you have" pattern.
       const cryptoWalletsObj: Record<string, string> = {};
       if (values.btc_wallet) cryptoWalletsObj.BTC = values.btc_wallet;
       if (values.eth_wallet) cryptoWalletsObj.ETH = values.eth_wallet;
@@ -288,7 +294,6 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
         current_stop_lat: currentStop?.lat ?? null, current_stop_lng: currentStop?.lng ?? null,
         destination_lat: destination?.lat ?? null, destination_lng: destination?.lng ?? null,
         crypto_wallets: Object.keys(cryptoWalletsObj).length ? cryptoWalletsObj : null,
-        // legacy single-wallet column kept in sync for any older code paths
         crypto_wallet_address: cryptoWalletsObj.BTC || cryptoWalletsObj.ETH || cryptoWalletsObj.USDT || null,
       };
 
@@ -333,9 +338,11 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           hold_body: values.hold_body,
           hold_footer_note: values.hold_footer_note,
         };
-        const tpl = shipmentId
-          ? buildStatusEmail(values.status ?? null, ctx) ?? buildCreatedEmail(ctx)
-          : buildCreatedEmail(ctx);
+        const tpl = holdType === "plain"
+          ? buildPlainHoldEmail(ctx)
+          : shipmentId
+            ? buildStatusEmail(values.status ?? null, ctx) ?? buildCreatedEmail(ctx)
+            : buildCreatedEmail(ctx);
         const result = await sendMail({
           email: values.receiver_email,
           subject: tpl.subject,
@@ -389,239 +396,248 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
           background: "#fff", padding: "20px 20px 32px",
         }}>
           {ready ? (
-            <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <>
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-              <Section title="Basic Info" color="blue">
-                <div className="space-y-1 sm:col-span-2">
-                  <FL>Transport Mode</FL>
-                  <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                    {TRANSPORT_MODES.map((m) => {
-                      const active = transportMode === m.value;
-                      return (
-                        <button key={m.value} type="button"
-                          onClick={() => {
-                            setValue("transport_mode", m.value, { shouldDirty: true });
-                            const current = getValues("status") ?? "";
-                            if (current && !statusesForMode(m.value).includes(current)) setValue("status", "");
-                          }}
-                          className={cn("flex-1 py-2.5 text-sm font-semibold transition-colors",
-                            active ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100")}>
-                          <span className="mr-1">{m.emoji}</span>{m.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <FL>Tracking Number</FL>
-                  <FInput icon={Hash} color="blue" {...register("tracking_number")}
-                    rightEl={
-                      <button type="button"
-                        onClick={() => { navigator.clipboard.writeText(trackingNumber ?? ""); toast.success("Copied"); }}
-                        className="p-1 rounded text-gray-400 hover:text-gray-700">
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    } />
-                  {errors.tracking_number && <p className="text-xs text-red-500">{errors.tracking_number.message}</p>}
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <FL>Status</FL>
-                  <FSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
-                    <option value="">Select status</option>
-                    {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
-                  </FSelect>
-                </div>
-              </Section>
-
-              <Section title="Sender's Details" color="orange">
-                <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="orange" {...register("sender_name")} /></div>
-                <div className="space-y-1"><FL>Email</FL><FInput icon={Mail} color="orange" type="email" {...register("sender_email")} /></div>
-                <div className="space-y-1"><FL>Phone</FL><FInput icon={Phone} color="orange" {...register("sender_phone")} /></div>
-                <div className="space-y-1"><FL>Country</FL><FInput icon={Globe} color="orange" {...register("sender_country")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Address</FL><FTextarea icon={MapPin} color="orange" {...register("sender_address")} /></div>
-              </Section>
-
-              <Section title="Receiver's Details" color="red">
-                <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="red" {...register("receiver_name")} /></div>
-                <div className="space-y-1"><FL>Email</FL><FInput icon={Mail} color="red" type="email" {...register("receiver_email")} /></div>
-                <div className="space-y-1"><FL>Phone</FL><FInput icon={Phone} color="red" {...register("receiver_phone")} /></div>
-                <div className="space-y-1"><FL>Country</FL><FInput icon={Globe} color="red" {...register("receiver_country")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Address</FL><FTextarea icon={MapPin} color="red" {...register("receiver_address")} /></div>
-              </Section>
-
-              <Section title="Package Details" color="violet">
-                <div className="space-y-1"><FL>Package Type</FL><FInput icon={PackageIcon} color="violet" {...register("package_type")} /></div>
-                <div className="space-y-1"><FL>Weight</FL><FInput icon={Scale} color="violet" {...register("weight")} /></div>
-                <div className="space-y-1"><FL>Date Sent</FL><FInput icon={Calendar} color="violet" type="date" {...register("date_sent")} /></div>
-                <div className="space-y-1"><FL>Expected Delivery</FL><FInput icon={Calendar} color="violet" type="date" {...register("expected_delivery_date")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Description</FL><FTextarea icon={FileText} color="violet" {...register("description")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Comments</FL><FTextarea icon={MessageSquare} color="violet" {...register("comments")} /></div>
-                <div className="space-y-2 sm:col-span-2">
-                  <FL>Package Image</FL>
-                  <div className="flex items-center gap-3">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100">
-                      <Upload className="h-4 w-4" />{uploading ? "Uploading…" : "Upload"}
-                      <input type="file" accept="image/*" className="hidden"
-                        onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setImageUrl)} />
-                    </label>
-                    {imageUrl && <img src={imageUrl} alt="pkg" className="h-14 w-14 rounded-lg object-cover border border-gray-200" />}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 sm:col-span-2">
-                  <Switch checked={!!watch("show_image")} onCheckedChange={(v) => setValue("show_image", v)} />
-                  <Label className="text-xs">Show image on tracking page</Label>
-                </div>
-              </Section>
-
-                            <Section title="Locations & Map" color="teal">
-                {transportMode === "land" && (
-                  <>
-                    <div className="space-y-1">
-                      <FL>Origin</FL>
-                      <FInput icon={Search} color="teal" {...register("origin_label")}
-                        onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }} />
+                <Section title="Basic Info" color="blue">
+                  <div className="space-y-1 sm:col-span-2">
+                    <FL>Transport Mode</FL>
+                    <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      {TRANSPORT_MODES.map((m) => {
+                        const active = transportMode === m.value;
+                        return (
+                          <button key={m.value} type="button"
+                            onClick={() => {
+                              setValue("transport_mode", m.value, { shouldDirty: true });
+                              const current = getValues("status") ?? "";
+                              if (current && !statusesForMode(m.value).includes(current)) setValue("status", "");
+                            }}
+                            className={cn("flex-1 py-2.5 text-sm font-semibold transition-colors",
+                              active ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100")}>
+                            <span className="mr-1">{m.emoji}</span>{m.label}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <div className="space-y-1 sm:col-span-2"><FL>Destination</FL><FInput icon={Search} color="teal" {...register("destination_label")} /></div>
-                  </>
-                )}
-
-                {transportMode === "air" && (
-                  <>
-                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
-                      <div className="space-y-1">
-                        <FL>Origin IATA</FL>
-                        <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. ICN" />
-                      </div>
-                      <div className="space-y-1">
-                        <FL>Origin Airport</FL>
-                        <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Incheon Airport" />
-                      </div>
-                    </div>
-                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
-                      <div className="space-y-1">
-                        <FL>Destination IATA</FL>
-                        <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. JFK" />
-                      </div>
-                      <div className="space-y-1">
-                        <FL>Destination Airport</FL>
-                        <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. John F. Kennedy Airport" />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {transportMode === "sea" && (
-                  <>
-                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
-                      <div className="space-y-1">
-                        <FL>Origin UN/LOCODE</FL>
-                        <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. CNSHA" />
-                      </div>
-                      <div className="space-y-1">
-                        <FL>Origin Sea Port</FL>
-                        <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Port of Shanghai" />
-                      </div>
-                    </div>
-                    <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
-                      <div className="space-y-1">
-                        <FL>Destination UN/LOCODE</FL>
-                        <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. USLAX" />
-                      </div>
-                      <div className="space-y-1">
-                        <FL>Destination Sea Port</FL>
-                        <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. Port of Los Angeles" />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div className="space-y-1">
-                  <FL>{transportMode === "land" ? "Current Stop" : "Current Location Label"}</FL>
-                  <FInput icon={Search} color="teal" {...register("current_stop_label")}
-                    placeholder={transportMode === "land" ? "" : "Optional — shown as a label only, doesn't move the map marker"} />
-                </div>
-                <div className="space-y-1 sm:col-span-2"><FL>Current Location (display label)</FL><FInput icon={MapPin} color="teal" {...register("current_location")} /></div>
-
-                {transportMode !== "land" && (
-                  <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
-                    For {transportMode === "air" ? "air" : "sea"} shipments, the map's current position is set automatically by Status (Origin / Departed / In Flight or At Sea / Arrived) — the fields above only control labels and the origin/destination points.
-                  </p>
-                )}
-              </Section>
-
-
-              <Section title="Billing" color="green">
-                <div className="space-y-1"><FL>Amount Due</FL><FInput icon={DollarSign} color="green" type="text" {...register("amount_due")} /></div>
-                <div className="space-y-1">
-                  <FL>Payment Mode</FL>
-                  <FSelect icon={CreditCard} color="green" {...register("payment_mode")} defaultValue="">
-                    <option value="">Select mode</option>
-                    <option value="Crypto">Crypto</option>
-                    <option value="Bank">Bank</option>
-                  </FSelect>
-                </div>
-                {paymentMode === "Crypto" && <>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-amber-500">Bitcoin (BTC) Wallet</Label>
-                    <FInput icon={Wallet} color="green" {...register("btc_wallet")} placeholder="BTC wallet address" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold text-indigo-600">Ethereum (ETH) Wallet</Label>
-                    <FInput icon={Wallet} color="green" {...register("eth_wallet")} placeholder="ETH wallet address" />
                   </div>
                   <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs font-semibold text-emerald-600">
-                      USDT Wallet <span className="text-red-600">(Network: TRON / TRC20)</span>
-                    </Label>
-                    <FInput icon={Wallet} color="green" {...register("usdt_wallet")} placeholder="USDT (TRC20) wallet address" />
+                    <FL>Tracking Number</FL>
+                    <FInput icon={Hash} color="blue" {...register("tracking_number")}
+                      rightEl={
+                        <button type="button"
+                          onClick={() => { navigator.clipboard.writeText(trackingNumber ?? ""); toast.success("Copied"); }}
+                          className="p-1 rounded text-gray-400 hover:text-gray-700">
+                          <Copy className="h-4 w-4" />
+                        </button>
+                      } />
+                    {errors.tracking_number && <p className="text-xs text-red-500">{errors.tracking_number.message}</p>}
                   </div>
-                  <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
-                    Fill in as many as apply — the tracking page will let the customer pick from whichever are set, just like Bank Transfer.
-                  </p>
-                  <div className="space-y-1 sm:col-span-2"><FL>Payment Note</FL><FTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
-                </>}
-                {paymentMode === "Bank" && <>
-                  <div className="space-y-1"><FL>Bank Name</FL><FInput icon={Building2} color="green" {...register("bank_name")} /></div>
-                  <div className="space-y-1"><FL>Account Number</FL><FInput icon={Hash} color="green" {...register("bank_account_number")} /></div>
-                  <div className="space-y-1 sm:col-span-2"><FL>Account Name</FL><FInput icon={User} color="green" {...register("bank_account_name")} /></div>
-                  <div className="space-y-1 sm:col-span-2"><FL>Bank Note</FL><FTextarea icon={MessageSquare} color="green" {...register("bank_instruction_note")} /></div>
-                </>}
-              </Section>
-
-              <Section title="Customs Hold" color="amber">
-                <div className="space-y-1"><FL>Hold Headline</FL><FInput icon={AlertTriangle} color="amber" {...register("hold_headline")} /></div>
-                <div className="space-y-1"><FL>Contact Email</FL><FInput icon={Mail} color="amber" type="email" {...register("hold_contact_email")} /></div>
-                <div className="space-y-1"><FL>Footer Note</FL><FInput icon={MessageSquare} color="amber" {...register("hold_footer_note")} /></div>
-                <div className="space-y-1 sm:col-span-2"><FL>Hold Body</FL><FTextarea icon={FileText} color="amber" {...register("hold_body")} /></div>
-              </Section>
-
-              <Section title="Proof of Delivery" color="emerald">
-                <div className="space-y-2 sm:col-span-2">
-                  <FL>Proof of Delivery Image</FL>
-                  <div className="flex items-center gap-3">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100">
-                      <Upload className="h-4 w-4" />{uploading ? "Uploading…" : "Upload"}
-                      <input type="file" accept="image/*" className="hidden"
-                        onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setProofUrl)} />
-                    </label>
-                    {proofUrl && <img src={proofUrl} alt="proof" className="h-14 w-14 rounded-lg object-cover border border-gray-200" />}
+                  <div className="space-y-1 sm:col-span-2">
+                    <FL>Status</FL>
+                    <FSelect icon={PackageIcon} color="blue" {...register("status")} defaultValue="">
+                      <option value="">Select status</option>
+                      {statusesForMode(transportMode).map((s: string) => <option key={s} value={s}>{s}</option>)}
+                    </FSelect>
                   </div>
+                </Section>
+
+                <Section title="Sender's Details" color="orange">
+                  <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="orange" {...register("sender_name")} /></div>
+                  <div className="space-y-1"><FL>Email</FL><FInput icon={Mail} color="orange" type="email" {...register("sender_email")} /></div>
+                  <div className="space-y-1"><FL>Phone</FL><FInput icon={Phone} color="orange" {...register("sender_phone")} /></div>
+                  <div className="space-y-1"><FL>Country</FL><FInput icon={Globe} color="orange" {...register("sender_country")} /></div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Address</FL><FTextarea icon={MapPin} color="orange" {...register("sender_address")} /></div>
+                </Section>
+
+                <Section title="Receiver's Details" color="red">
+                  <div className="space-y-1"><FL>Full Name</FL><FInput icon={User} color="red" {...register("receiver_name")} /></div>
+                  <div className="space-y-1"><FL>Email</FL><FInput icon={Mail} color="red" type="email" {...register("receiver_email")} /></div>
+                  <div className="space-y-1"><FL>Phone</FL><FInput icon={Phone} color="red" {...register("receiver_phone")} /></div>
+                  <div className="space-y-1"><FL>Country</FL><FInput icon={Globe} color="red" {...register("receiver_country")} /></div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Address</FL><FTextarea icon={MapPin} color="red" {...register("receiver_address")} /></div>
+                </Section>
+
+                <Section title="Package Details" color="violet">
+                  <div className="space-y-1"><FL>Package Type</FL><FInput icon={PackageIcon} color="violet" {...register("package_type")} /></div>
+                  <div className="space-y-1"><FL>Weight</FL><FInput icon={Scale} color="violet" {...register("weight")} /></div>
+                  <div className="space-y-1"><FL>Date Sent</FL><FInput icon={Calendar} color="violet" type="date" {...register("date_sent")} /></div>
+                  <div className="space-y-1"><FL>Expected Delivery</FL><FInput icon={Calendar} color="violet" type="date" {...register("expected_delivery_date")} /></div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Description</FL><FTextarea icon={FileText} color="violet" {...register("description")} /></div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Comments</FL><FTextarea icon={MessageSquare} color="violet" {...register("comments")} /></div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <FL>Package Image</FL>
+                    <div className="flex items-center gap-3">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100">
+                        <Upload className="h-4 w-4" />{uploading ? "Uploading…" : "Upload"}
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setImageUrl)} />
+                      </label>
+                      {imageUrl && <img src={imageUrl} alt="pkg" className="h-14 w-14 rounded-lg object-cover border border-gray-200" />}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <Switch checked={!!watch("show_image")} onCheckedChange={(v) => setValue("show_image", v)} />
+                    <Label className="text-xs">Show image on tracking page</Label>
+                  </div>
+                </Section>
+
+                <Section title="Locations & Map" color="teal">
+                  {transportMode === "land" && (
+                    <>
+                      <div className="space-y-1">
+                        <FL>Origin</FL>
+                        <FInput icon={Search} color="teal" {...register("origin_label")}
+                          onBlur={(e) => { if (!getValues("origin_label")) setValue("origin_label", e.currentTarget.value); }} />
+                      </div>
+                      <div className="space-y-1 sm:col-span-2"><FL>Destination</FL><FInput icon={Search} color="teal" {...register("destination_label")} /></div>
+                    </>
+                  )}
+
+                  {transportMode === "air" && (
+                    <>
+                      <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                        <div className="space-y-1">
+                          <FL>Origin IATA</FL>
+                          <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. ICN" />
+                        </div>
+                        <div className="space-y-1">
+                          <FL>Origin Airport</FL>
+                          <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Incheon Airport" />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                        <div className="space-y-1">
+                          <FL>Destination IATA</FL>
+                          <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. JFK" />
+                        </div>
+                        <div className="space-y-1">
+                          <FL>Destination Airport</FL>
+                          <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. John F. Kennedy Airport" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {transportMode === "sea" && (
+                    <>
+                      <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                        <div className="space-y-1">
+                          <FL>Origin UN/LOCODE</FL>
+                          <FInput icon={Hash} color="teal" {...register("origin_code")} placeholder="e.g. CNSHA" />
+                        </div>
+                        <div className="space-y-1">
+                          <FL>Origin Sea Port</FL>
+                          <FInput icon={Search} color="teal" {...register("origin_label")} placeholder="e.g. Port of Shanghai" />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-2 grid grid-cols-[100px_1fr] gap-2">
+                        <div className="space-y-1">
+                          <FL>Destination UN/LOCODE</FL>
+                          <FInput icon={Hash} color="teal" {...register("destination_code")} placeholder="e.g. USLAX" />
+                        </div>
+                        <div className="space-y-1">
+                          <FL>Destination Sea Port</FL>
+                          <FInput icon={Search} color="teal" {...register("destination_label")} placeholder="e.g. Port of Los Angeles" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-1">
+                    <FL>{transportMode === "land" ? "Current Stop" : "Current Location Label"}</FL>
+                    <FInput icon={Search} color="teal" {...register("current_stop_label")}
+                      placeholder={transportMode === "land" ? "" : "Optional — shown as a label only, doesn't move the map marker"} />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Current Location (display label)</FL><FInput icon={MapPin} color="teal" {...register("current_location")} /></div>
+
+                  {transportMode !== "land" && (
+                    <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
+                      For {transportMode === "air" ? "air" : "sea"} shipments, the map's current position is set automatically by Status (Origin / Departed / In Flight or At Sea / Arrived) — the fields above only control labels and the origin/destination points.
+                    </p>
+                  )}
+                </Section>
+
+                <Section title="Billing" color="green">
+                  <div className="space-y-1"><FL>Amount Due</FL><FInput icon={DollarSign} color="green" type="text" {...register("amount_due")} /></div>
+                  <div className="space-y-1">
+                    <FL>Payment Mode</FL>
+                    <FSelect icon={CreditCard} color="green" {...register("payment_mode")} defaultValue="">
+                      <option value="">Select mode</option>
+                      <option value="Crypto">Crypto</option>
+                      <option value="Bank">Bank</option>
+                    </FSelect>
+                  </div>
+                  {paymentMode === "Crypto" && <>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold text-amber-500">Bitcoin (BTC) Wallet</Label>
+                      <FInput icon={Wallet} color="green" {...register("btc_wallet")} placeholder="BTC wallet address" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold text-indigo-600">Ethereum (ETH) Wallet</Label>
+                      <FInput icon={Wallet} color="green" {...register("eth_wallet")} placeholder="ETH wallet address" />
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label className="text-xs font-semibold text-emerald-600">
+                        USDT Wallet <span className="text-red-600">(Network: TRON / TRC20)</span>
+                      </Label>
+                      <FInput icon={Wallet} color="green" {...register("usdt_wallet")} placeholder="USDT (TRC20) wallet address" />
+                    </div>
+                    <p className="text-xs text-gray-400 sm:col-span-2 -mt-1">
+                      Fill in as many as apply — the tracking page will let the customer pick from whichever are set, just like Bank Transfer.
+                    </p>
+                    <div className="space-y-1 sm:col-span-2"><FL>Payment Note</FL><FTextarea icon={MessageSquare} color="green" {...register("payment_instruction_note")} /></div>
+                  </>}
+                  {paymentMode === "Bank" && <>
+                    <div className="space-y-1"><FL>Bank Name</FL><FInput icon={Building2} color="green" {...register("bank_name")} /></div>
+                    <div className="space-y-1"><FL>Account Number</FL><FInput icon={Hash} color="green" {...register("bank_account_number")} /></div>
+                    <div className="space-y-1 sm:col-span-2"><FL>Account Name</FL><FInput icon={User} color="green" {...register("bank_account_name")} /></div>
+                    <div className="space-y-1 sm:col-span-2"><FL>Bank Note</FL><FTextarea icon={MessageSquare} color="green" {...register("bank_instruction_note")} /></div>
+                  </>}
+                </Section>
+
+                <Section title="Customs Hold" color="amber">
+                  <div className="space-y-1"><FL>Hold Headline</FL><FInput icon={AlertTriangle} color="amber" {...register("hold_headline")} /></div>
+                  <div className="space-y-1"><FL>Contact Email</FL><FInput icon={Mail} color="amber" type="email" {...register("hold_contact_email")} /></div>
+                  <div className="space-y-1"><FL>Footer Note</FL><FInput icon={MessageSquare} color="amber" {...register("hold_footer_note")} /></div>
+                  <div className="space-y-1 sm:col-span-2"><FL>Hold Body</FL><FTextarea icon={FileText} color="amber" {...register("hold_body")} /></div>
+                </Section>
+
+                <Section title="Proof of Delivery" color="emerald">
+                  <div className="space-y-2 sm:col-span-2">
+                    <FL>Proof of Delivery Image</FL>
+                    <div className="flex items-center gap-3">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100">
+                        <Upload className="h-4 w-4" />{uploading ? "Uploading…" : "Upload"}
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0], setProofUrl)} />
+                      </label>
+                      {proofUrl && <img src={proofUrl} alt="proof" className="h-14 w-14 rounded-lg object-cover border border-gray-200" />}
+                    </div>
+                  </div>
+                </Section>
+
+                <button type="submit" disabled={submitting} style={{
+                  width: "100%", padding: "14px 0",
+                  background: submitting ? "#7c3aed99" : "#7c3aed",
+                  color: "#fff", border: "none", borderRadius: 10,
+                  fontWeight: 700, fontSize: 16,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}>
+                  {submitting ? <Loader2 size={16} className="animate-spin" /> : <Truck size={16} />}
+                  {submitting ? "Saving…" : "Save Shipment"}
+                </button>
+
+              </form>
+
+              {/* Outside the <form> on purpose: pressing Enter in a history
+                  field must not submit the shipment form. */}
+              {shipmentId && (
+                <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #e5e7eb" }}>
+                  <HistoryEditor shipmentId={shipmentId} history={history} onSaved={setHistory} />
                 </div>
-              </Section>
-
-              <button type="submit" disabled={submitting} style={{
-                width: "100%", padding: "14px 0",
-                background: submitting ? "#7c3aed99" : "#7c3aed",
-                color: "#fff", border: "none", borderRadius: 10,
-                fontWeight: 700, fontSize: 16,
-                cursor: submitting ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}>
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Truck size={16} />}
-                {submitting ? "Saving…" : "Save Shipment"}
-              </button>
-
-            </form>
+              )}
+            </>
           ) : (
             <div className="flex h-full min-h-[400px] w-full items-center justify-center">
               <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
@@ -633,7 +649,22 @@ export function ShipmentFormModal({ open, onOpenChange, shipmentId, onSaved }: P
       <ConfirmNotifyModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        onConfirm={async (send) => { if (pendingValues) await doSave(pendingValues, send); }}
+        onConfirm={async (send) => {
+          if (!pendingValues) return;
+          if (send && shipmentId && isHoldStatus(pendingValues.status) && pendingValues.receiver_email) {
+            setHoldOpen(true); // save happens after the choice
+            return;
+          }
+          await doSave(pendingValues, send);
+        }}
+      />
+      <HoldNotifyTypeModal
+        open={holdOpen}
+        onCancel={() => setHoldOpen(false)}
+        onConfirm={async (type) => {
+          if (pendingValues) await doSave(pendingValues, true, type);
+          setHoldOpen(false);
+        }}
       />
     </>,
     document.body
