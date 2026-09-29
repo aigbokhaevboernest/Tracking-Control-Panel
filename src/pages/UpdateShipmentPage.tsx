@@ -11,12 +11,11 @@ import { statusBadgeClass, statusesForMode } from "@/lib/tracking";
 import { geocode } from "@/lib/geocode";
 import { ShipmentFormModal } from "@/components/ShipmentFormModal";
 import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
-import { TableRowSkeleton } from "@/components/TableSkeleton";
-import { sendMail, buildStatusEmail } from "@/lib/sendMail";
-import { format } from "date-fns";
 import { HoldNotifyTypeModal, type HoldNotifyType } from "@/components/HoldNotifyTypeModal";
 import { HistoryEditor } from "@/components/HistoryEditor";
+import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { sendMail, buildStatusEmail, buildPlainHoldEmail } from "@/lib/sendMail";
+import { format } from "date-fns";
 
 function transportLabel(mode: string | null | undefined) {
   if (mode === "air") return "✈️";
@@ -25,21 +24,21 @@ function transportLabel(mode: string | null | undefined) {
   return "—";
 }
 
+const isHoldStatus = (s: string) => /hold|customs/i.test(s);
+
 export default function UpdateShipmentPage() {
   const [updateRow, setUpdateRow] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [holdOpen, setHoldOpen] = useState(false);
 
   const [status, setStatus] = useState("");
   const [location, setLocation] = useState("");
   const [amount, setAmount] = useState("");
   const [comments, setComments] = useState("");
   const [date, setDate] = useState("");
-  
-  const [holdOpen, setHoldOpen] = useState(false);
-  const isHoldStatus = (s: string) => /hold|customs/i.test(s);
 
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["update-shipments"],
@@ -67,15 +66,18 @@ export default function UpdateShipmentPage() {
     setConfirmOpen(true);
   }
 
-  async function doSave(sendEmailFlag: boolean) {
+  async function doSave(sendEmailFlag: boolean, holdType?: HoldNotifyType) {
     if (!updateRow) return;
     setSubmitting(true);
     try {
       const geo = location ? await geocode(location) : null;
       const prev = (updateRow.history as any[]) ?? [];
-      // Most recent first — prepend the new entry.
+
+      // Timestamp of the event itself (NOT the expected delivery date).
+      // `date` and `at` both carry it so the public page and old rows agree.
+      const eventAt = new Date().toISOString();
       const newHist = [
-        { status, location, date, comments, at: new Date().toISOString() },
+        { status, location, comments, date: eventAt, at: eventAt },
         ...prev,
       ];
 
@@ -96,27 +98,26 @@ export default function UpdateShipmentPage() {
 
       if (sendEmailFlag && updateRow.receiver_email) {
         const ctx = {
-  tracking_number: updateRow.tracking_number,
-  transport_mode: updateRow.transport_mode,
-  sender_name: updateRow.sender_name,
-  sender_phone: updateRow.sender_phone,
-  sender_address: updateRow.sender_address,
-  sender_country: updateRow.sender_country,
-  receiver_name: updateRow.receiver_name,
-  receiver_phone: updateRow.receiver_phone,
-  receiver_address: updateRow.receiver_address,
-  receiver_country: updateRow.receiver_country,
-  current_location: location || updateRow.current_location,
-  destination_label: updateRow.destination_label,
-  origin_label: updateRow.origin_label,
-  expected_delivery_date: date || updateRow.expected_delivery_date,
-  amount_due: amount !== "" ? amount : updateRow.amount_due,
-  hold_headline: updateRow.hold_headline,
-  hold_body: updateRow.hold_body,
-  hold_footer_note: updateRow.hold_footer_note,
-};
-const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(status, ctx);
-
+          tracking_number: updateRow.tracking_number,
+          transport_mode: updateRow.transport_mode,
+          sender_name: updateRow.sender_name,
+          sender_phone: updateRow.sender_phone,
+          sender_address: updateRow.sender_address,
+          sender_country: updateRow.sender_country,
+          receiver_name: updateRow.receiver_name,
+          receiver_phone: updateRow.receiver_phone,
+          receiver_address: updateRow.receiver_address,
+          receiver_country: updateRow.receiver_country,
+          current_location: location || updateRow.current_location,
+          destination_label: updateRow.destination_label,
+          origin_label: updateRow.origin_label,
+          expected_delivery_date: date || updateRow.expected_delivery_date,
+          amount_due: amount !== "" ? amount : updateRow.amount_due,
+          hold_headline: updateRow.hold_headline,
+          hold_body: updateRow.hold_body,
+          hold_footer_note: updateRow.hold_footer_note,
+        };
+        const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(status, ctx);
 
         if (tpl) {
           const res = await sendMail({
@@ -320,14 +321,14 @@ const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(s
                   {submitting ? "Saving…" : "Save"}
                 </button>
               </form>
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e5e7eb" }}>
-  <HistoryEditor
-    shipmentId={updateRow.id}
-    history={updateRow.history ?? []}
-    onSaved={(next) => { setUpdateRow((r: any) => ({ ...r, history: next })); refetch(); }}
-  />
-</div>
 
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e5e7eb" }}>
+                <HistoryEditor
+                  shipmentId={updateRow.id}
+                  history={updateRow.history ?? []}
+                  onSaved={(next) => { setUpdateRow((r: any) => ({ ...r, history: next })); refetch(); }}
+                />
+              </div>
             </div>
           </div>
         </>,
@@ -340,23 +341,23 @@ const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(s
         shipmentId={editId}
         onSaved={() => refetch()}
       />
-      <ConfirmNotifyModal
-  open={confirmOpen}
-  onOpenChange={setConfirmOpen}
-  onConfirm={async (send) => {
-    if (send && isHoldStatus(status) && updateRow?.receiver_email) {
-      setHoldOpen(true);        // save happens after the choice
-      return;
-    }
-    await doSave(send);
-  }}
-/>
-<HoldNotifyTypeModal
-  open={holdOpen}
-  onCancel={() => setHoldOpen(false)}
-  onConfirm={async (type) => { await doSave(true, type); setHoldOpen(false); }}
-/>
 
+      <ConfirmNotifyModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={async (send) => {
+          if (send && isHoldStatus(status) && updateRow?.receiver_email) {
+            setHoldOpen(true); // save happens after the choice
+            return;
+          }
+          await doSave(send);
+        }}
+      />
+      <HoldNotifyTypeModal
+        open={holdOpen}
+        onCancel={() => setHoldOpen(false)}
+        onConfirm={async (type) => { await doSave(true, type); setHoldOpen(false); }}
+      />
     </div>
   );
 }
