@@ -14,6 +14,9 @@ import { ConfirmNotifyModal } from "@/components/ConfirmNotifyModal";
 import { TableRowSkeleton } from "@/components/TableSkeleton";
 import { sendMail, buildStatusEmail } from "@/lib/sendMail";
 import { format } from "date-fns";
+import { HoldNotifyTypeModal, type HoldNotifyType } from "@/components/HoldNotifyTypeModal";
+import { HistoryEditor } from "@/components/HistoryEditor";
+import { sendMail, buildStatusEmail, buildPlainHoldEmail } from "@/lib/sendMail";
 
 function transportLabel(mode: string | null | undefined) {
   if (mode === "air") return "✈️";
@@ -34,6 +37,9 @@ export default function UpdateShipmentPage() {
   const [amount, setAmount] = useState("");
   const [comments, setComments] = useState("");
   const [date, setDate] = useState("");
+  
+  const [holdOpen, setHoldOpen] = useState(false);
+  const isHoldStatus = (s: string) => /hold|customs/i.test(s);
 
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["update-shipments"],
@@ -89,26 +95,28 @@ export default function UpdateShipmentPage() {
       toast.success("Shipment updated");
 
       if (sendEmailFlag && updateRow.receiver_email) {
-        const tpl = buildStatusEmail(status, {
-          tracking_number: updateRow.tracking_number,
-          transport_mode: updateRow.transport_mode,
-          sender_name: updateRow.sender_name,
-          sender_phone: updateRow.sender_phone,
-          sender_address: updateRow.sender_address,
-          sender_country: updateRow.sender_country,
-          receiver_name: updateRow.receiver_name,
-          receiver_phone: updateRow.receiver_phone,
-          receiver_address: updateRow.receiver_address,
-          receiver_country: updateRow.receiver_country,
-          current_location: location || updateRow.current_location,
-          destination_label: updateRow.destination_label,
-          origin_label: updateRow.origin_label,
-          expected_delivery_date: date || updateRow.expected_delivery_date,
-          amount_due: amount !== "" ? amount : updateRow.amount_due,
-          hold_headline: updateRow.hold_headline,
-          hold_body: updateRow.hold_body,
-          hold_footer_note: updateRow.hold_footer_note,
-        });
+        const ctx = {
+  tracking_number: updateRow.tracking_number,
+  transport_mode: updateRow.transport_mode,
+  sender_name: updateRow.sender_name,
+  sender_phone: updateRow.sender_phone,
+  sender_address: updateRow.sender_address,
+  sender_country: updateRow.sender_country,
+  receiver_name: updateRow.receiver_name,
+  receiver_phone: updateRow.receiver_phone,
+  receiver_address: updateRow.receiver_address,
+  receiver_country: updateRow.receiver_country,
+  current_location: location || updateRow.current_location,
+  destination_label: updateRow.destination_label,
+  origin_label: updateRow.origin_label,
+  expected_delivery_date: date || updateRow.expected_delivery_date,
+  amount_due: amount !== "" ? amount : updateRow.amount_due,
+  hold_headline: updateRow.hold_headline,
+  hold_body: updateRow.hold_body,
+  hold_footer_note: updateRow.hold_footer_note,
+};
+const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(status, ctx);
+
 
         if (tpl) {
           const res = await sendMail({
@@ -325,10 +333,22 @@ export default function UpdateShipmentPage() {
         onSaved={() => refetch()}
       />
       <ConfirmNotifyModal
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        onConfirm={async (send) => { await doSave(send); }}
-      />
+  open={confirmOpen}
+  onOpenChange={setConfirmOpen}
+  onConfirm={async (send) => {
+    if (send && isHoldStatus(status) && updateRow?.receiver_email) {
+      setHoldOpen(true);        // save happens after the choice
+      return;
+    }
+    await doSave(send);
+  }}
+/>
+<HoldNotifyTypeModal
+  open={holdOpen}
+  onCancel={() => setHoldOpen(false)}
+  onConfirm={async (type) => { await doSave(true, type); setHoldOpen(false); }}
+/>
+
     </div>
   );
 }
