@@ -320,6 +320,14 @@ const tpl = holdType === "plain" ? buildPlainHoldEmail(ctx) : buildStatusEmail(s
                   {submitting ? "Saving…" : "Save"}
                 </button>
               </form>
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e5e7eb" }}>
+  <HistoryEditor
+    shipmentId={updateRow.id}
+    history={updateRow.history ?? []}
+    onSaved={(next) => { setUpdateRow((r: any) => ({ ...r, history: next })); refetch(); }}
+  />
+</div>
+
             </div>
           </div>
         </>,
