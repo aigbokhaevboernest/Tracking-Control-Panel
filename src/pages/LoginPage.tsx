@@ -25,7 +25,7 @@ export default function LoginPage() {
       if (error) throw error;
       // Verify admin
       const { data: roleRow } = await supabase
-        .from("user_roles")
+        .from("user_role")
         .select("role")
         .eq("user_id", data.user!.id)
         .eq("role", "admin")
