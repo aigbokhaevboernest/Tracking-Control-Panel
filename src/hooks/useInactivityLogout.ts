@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthProvider";
 
 // TESTING value. Set back to 30 * 60 * 1000 before shipping.
-const TIMEOUT_MS = 2 * 60 * 1000;
+const TIMEOUT_MS = 30 * 60 * 1000;
 // Warning toast appears this long before logout.
 const WARN_BEFORE_MS = 60 * 1000;
 const DEBUG = true; // logs "[idle] ..." in the console; set false when done
