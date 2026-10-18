@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthProvider";
 
-const INACTIVITY_MS = 30 * 60 * 1000; // 30 minutes
+const INACTIVITY_MS = 1 * 60 * 1000; // 30 minutes
 const WARNING_MS = 29 * 60 * 1000; // 1 minute before logout
 
 export function useInactivityLogout() {
